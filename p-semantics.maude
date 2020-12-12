@@ -12,6 +12,26 @@ mod P-SEMANTICS is including P-SYNTAX .
      <soup> .Cell </soup>
    .
 
+  --- Machine Statements
+  ----------------------
+
+  --- For now, we we do not process "sends" clauses, so we ignore them.
+  eq machine I sends Exps ; B
+   = machine I ; B
+   .
+  
+  rl <k> ( machine I ; B ) Ss </k>
+     <machines> M </machines>
+  => <k> Ss </k>
+     <machines> I |-> ( machine I ; B ) M </machines>
+   .
+
+  rl <k> ( main machine I ; B ) Ss </k>
+     <machines> M </machines>
+  => <k> Ss </k>
+     <machines> I |-> (main machine I ; B ) M </machines>
+   .
+
   --- The K Sort
   sort K .
   subsort Exp Stmt < K .
@@ -48,14 +68,8 @@ mod P-SEMANTICS is including P-SYNTAX .
   var Ss : Stmt .
   var M : Map .
   var C : Cfg .
+  var Exps : Exps .
 
-  --- Statment Execution
-
-  rl <k> ( machine I ; B ) Ss </k> <machines> M </machines> C
-  => <k> Ss </k> <machines> I |-> ( machine I ; B ) M </machines> C .
-
-  rl <k> ( main machine I ; B ) Ss </k> <machines> M </machines> C
-  => <k> Ss </k> <machines> I |-> (main machine I ; B ) M </machines> C .
 
   --- Create the main machine
   rl <machines> I |-> ( main machine I ; B ) M </machines>
