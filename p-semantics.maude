@@ -18,7 +18,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   -----------------------
   eq init(Ss)
    = <k> Ss </k>
-     <machines> .Map </machines>
+     <machines> .MachineSchemas </machines>
      <soup> .Cell </soup>
    .
 
@@ -28,18 +28,23 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- Machine statements are schema for initializing new machines.
   --- For each machine statement, we load them into the <machine> cell.
 
-  op <machines>_</machines> : Map -> Cell [prec 64 format (ngu o++i n--igu o)] .
+  sort MachineSchemas .
+  subsort MachineStmt < MachineSchemas .
+  op .MachineSchemas : -> MachineSchemas .
+  op _ ;; _ : MachineSchemas MachineSchemas -> MachineSchemas [assoc comm id: .MachineSchemas] .
+
+  op <machines>_</machines> : MachineSchemas -> Cell [prec 64 format (ngu o++i n--igu o)] .
 
   rl <k> ( machine I ; B ) Ss </k>
-     <machines> M </machines>
+     <machines> Schemas </machines>
   => <k> Ss </k>
-     <machines> I |-> ( machine I ; B ) M </machines>
+     <machines> ( machine I ; B ) ;; Schemas </machines>
    .
 
   rl <k> ( main machine I ; B ) Ss </k>
-     <machines> M </machines>
+     <machines> Schemas </machines>
   => <k> Ss </k>
-     <machines> I |-> (main machine I ; B ) M </machines>
+     <machines> (main machine I ; B ) ;; Schemas </machines>
    .
 
   --- For now, we we do not process "sends" clauses, so we ignore them.
@@ -48,11 +53,10 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
   --- The schema for the main machine is used to initialize the machine soup.
-
-  rl <machines> I |-> ( main machine I ; B ) M </machines>
-     <soup> .Cell </soup> C
-  => <machines> I |-> ( main machine I ; B ) M </machines>
-     <soup> ( < 0 | B | .Map > ) </soup> C .
+  rl <machines> ( main machine I ; B ) ;; Schemas </machines>
+     <soup> .Cell </soup>
+  => <machines> ( main machine I ; B ) ;; Schemas </machines>
+     <soup> ( < 0 | B | .Map > ) </soup> .
 
   --- Other infrastructure
   ------------------------
@@ -78,14 +82,13 @@ mod P-SEMANTICS is including P-SYNTAX .
   op <_|_|_> : Int K Map -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
   op <soup>_</soup> : Cell -> Cell [prec 64 format (ncu o++in n--icu p)] .
 
-
   var I : Id .
   var B : Block .
   var Ss : Stmt .
   var M : Map .
   var C : Cfg .
   var Exps : Exps .
-
+  var Schemas : MachineSchemas .
 
 endm
 
