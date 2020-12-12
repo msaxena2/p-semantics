@@ -1,6 +1,17 @@
 in "p-syntax.maude"
 
 mod P-SEMANTICS is including P-SYNTAX .
+
+  --- The init construct is responsible for setting up program state
+
+  op init : Stmt -> Cfg .
+  -----------------------
+  eq init(Ss)
+   = <k> Ss </k>
+     <machines> .Map </machines>
+     <soup> .Cell </soup>
+   .
+
   --- The K Sort
   sort K .
   subsort Exp Stmt < K .

@@ -39,4 +39,6 @@ endm
 red SenderPgm .
 red ReceiverPgm .
 
+red init(SenderPgm ReceiverPgm) .
+
 quit .
