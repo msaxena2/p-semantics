@@ -27,6 +27,8 @@ result MachineStmt: machine Receiver ; {
 reduce in P-SEND-RECIEVE-TEST : init(SenderPgm
 ReceiverPgm) .
 result [Cfg]: 
+<machines>  .Map
+</machines> 
 <k>  machine Sender ; {
     var receiver : Receiver ;
     start state Init {
@@ -49,8 +51,6 @@ result [Cfg]:
     }
   }
 </k> 
-<machines>  .Map
-</machines> 
 <soup>  
 .Cell
 </soup>
@@ -58,8 +58,6 @@ result [Cfg]:
 rewrite in P-SEND-RECIEVE-TEST : init(SenderPgm
 ReceiverPgm) .
 result [Cfg]: 
-<k>  .Stmt
-</k> 
 <machines>  
     Sender |-> machine Sender ; {
       var receiver : Receiver ;
@@ -83,6 +81,8 @@ result [Cfg]:
       }
     }  
 </machines> 
+<k>  .Stmt
+</k> 
 <soup>  
 .Cell
 </soup>

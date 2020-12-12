@@ -2,7 +2,17 @@ in "p-syntax.maude"
 
 mod P-SEMANTICS is including P-SYNTAX .
 
-  --- The init construct is responsible for setting up program state
+  --- Configuration
+  -----------------
+
+  --- The configuration consists of a AC soup of cells.
+
+  sorts Cell Cfg .
+  subsort Cell < Cfg .
+  op .Cell : -> Cfg .
+  op __ : Cfg Cfg -> Cfg [prec 65 assoc comm id: .Cell] .
+
+  --- The init constructs an initial configuration from a program.
 
   op init : Stmt -> Cfg .
   -----------------------
@@ -15,11 +25,11 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- Machine Statements
   ----------------------
 
-  --- For now, we we do not process "sends" clauses, so we ignore them.
-  eq machine I sends Exps ; B
-   = machine I ; B
-   .
-  
+  --- Machine statements are schema for initializing new machines.
+  --- For each machine statement, we load them into the <machine> cell.
+
+  op <machines>_</machines> : Map -> Cell [prec 64 format (ngu o++i n--igu o)] .
+
   rl <k> ( machine I ; B ) Ss </k>
      <machines> M </machines>
   => <k> Ss </k>
@@ -32,19 +42,26 @@ mod P-SEMANTICS is including P-SYNTAX .
      <machines> I |-> (main machine I ; B ) M </machines>
    .
 
+  --- For now, we we do not process "sends" clauses, so we ignore them.
+  eq machine I sends Exps ; B
+   = machine I ; B
+   .
+
+  --- The schema for the main machine is used to initialize the machine soup.
+
+  rl <machines> I |-> ( main machine I ; B ) M </machines>
+     <soup> .Cell </soup> C
+  => <machines> I |-> ( main machine I ; B ) M </machines>
+     <soup> ( < 0 | B | .Map > ) </soup> C .
+
+  --- Other infrastructure
+  ------------------------
+
   --- The K Sort
   sort K .
   subsort Exp Stmt < K .
 
   op .K : -> K .
-
-  --- Cells
-  sorts Cell Cfg .
-  subsort Cell < Cfg .
-
-  op .Cell : -> Cfg .
-
-  op __ : Cfg Cfg -> Cfg [prec 65 assoc comm id: .Cell] .
 
   --- Maps
   sorts Binding Map .
@@ -56,7 +73,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   op __ : Map Map -> Map [prec 62 assoc comm id: .Map] .
 
   op <k>_</k> : K -> Cell [prec 64 format (ncu o++i n--icu o)] .
-  op <machines>_</machines> : Map -> Cell [prec 64 format (ngu o++i n--igu o)] .
 
   --- "Reference" | "Executing Code" | "State"
   op <_|_|_> : Int K Map -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
@@ -71,10 +87,5 @@ mod P-SEMANTICS is including P-SYNTAX .
   var Exps : Exps .
 
 
-  --- Create the main machine
-  rl <machines> I |-> ( main machine I ; B ) M </machines>
-     <soup> .Cell </soup> C
-  => <machines> I |-> ( main machine I ; B ) M </machines>
-     <soup> ( < 0 | B | .Map > ) </soup> C .
 endm
 
