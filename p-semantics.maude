@@ -59,25 +59,25 @@ mod P-SEMANTICS is including P-SYNTAX .
   rl <machines> ( main machine I ; B ) ;; Schemas </machines>
      <soup> .Cell </soup>
   => <machines> ( main machine I ; B ) ;; Schemas </machines>
-     <soup> ( < 0 | B | .Map > ) </soup> .
+     <soup> ( < 0 | B | .VariableMap > ) </soup> .
 
   --- Other infrastructure
   ------------------------
 
   --- Maps
-  sort Map .
-  op .Map : -> Map .
-  op _|->_ : Id Exp -> Map [prec 60 format (n++i r o --i) ] .
-  op _ _ : Map Map -> Map [prec 62 assoc comm id: .Map] .
+  sort VariableMap .
+  op .VariableMap : -> VariableMap .
+  op _|->_ : Id Exp -> VariableMap [prec 60 format (n++i r o --i) ] .
+  op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
 
   --- "Reference" | "Executing Code" | "State"
-  op <_|_|_> : Int Stmt Map -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
+  op <_|_|_> : Int Stmt VariableMap -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
   op <soup>_</soup> : Cell -> Cell [prec 64 format (ncu o++in n--icu p)] .
 
   var I : Id .
   var B : Block .
   var Ss : Stmt .
-  var M : Map .
+  var M : VariableMap .
   var C : Cfg .
   var Exps : Exps .
   var Schemas : MachineSchemas .
