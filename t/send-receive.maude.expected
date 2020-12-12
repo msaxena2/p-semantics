@@ -27,8 +27,6 @@ result MachineStmt: machine Receiver ; {
 reduce in P-SEND-RECIEVE-TEST : init(SenderPgm
 ReceiverPgm) .
 result [Cfg]: 
-<machines>  .MachineSchemas
-</machines> 
 <k>  machine Sender ; {
     var receiver : Receiver ;
     start state Init {
@@ -51,6 +49,8 @@ result [Cfg]:
     }
   }
 </k> 
+<machines>  .MachineSchemas
+</machines> 
 <soup>  
 .Cell
 </soup>
@@ -58,6 +58,8 @@ result [Cfg]:
 rewrite in P-SEND-RECIEVE-TEST : init(SenderPgm
 ReceiverPgm) .
 result [Cfg]: 
+<k>  .Stmt
+</k> 
 <machines>  (machine Sender ; {
     var receiver : Receiver ;
     start state Init {
@@ -79,8 +81,6 @@ result [Cfg]:
     }
   }
 </machines> 
-<k>  .Stmt
-</k> 
 <soup>  
 .Cell
 </soup>

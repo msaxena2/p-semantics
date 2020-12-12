@@ -12,7 +12,10 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .Cell : -> Cfg .
   op __ : Cfg Cfg -> Cfg [prec 65 assoc comm id: .Cell] .
 
-  --- The init constructs an initial configuration from a program.
+  --- The init constructs an initial configuration from a program
+  --- with the <k> cell storing the initial program.
+
+  op <k>_</k> : Stmt -> Cell [prec 64 format (ncu o++i n--icu o)] .
 
   op init : Stmt -> Cfg .
   -----------------------
@@ -61,25 +64,14 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- Other infrastructure
   ------------------------
 
-  --- The K Sort
-  sort K .
-  subsort Exp Stmt < K .
-
-  op .K : -> K .
-
   --- Maps
-  sorts Binding Map .
-  subsort Binding < Map .
-
+  sort Map .
   op .Map : -> Map .
-  op _|->_ : Id K -> Binding [prec 60 format (n++i r o --i) ] .
-
-  op __ : Map Map -> Map [prec 62 assoc comm id: .Map] .
-
-  op <k>_</k> : K -> Cell [prec 64 format (ncu o++i n--icu o)] .
+  op _|->_ : Id Exp -> Map [prec 60 format (n++i r o --i) ] .
+  op _ _ : Map Map -> Map [prec 62 assoc comm id: .Map] .
 
   --- "Reference" | "Executing Code" | "State"
-  op <_|_|_> : Int K Map -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
+  op <_|_|_> : Int Stmt Map -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
   op <soup>_</soup> : Cell -> Cell [prec 64 format (ncu o++in n--icu p)] .
 
   var I : Id .
