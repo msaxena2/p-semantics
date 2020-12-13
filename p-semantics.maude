@@ -31,35 +31,75 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- Machine statements are schema for initializing new machines.
   --- For each machine statement, we load them into the <machine> cell.
 
+  sort MachineSchema .
+  op (( machine: _ , start: _ , states: _ , initState: _ )) : Id Id States VariableMap -> MachineSchema .
+  op noid : -> [Id] .
+
+  sort State .
+  op (( state: _, entry: _ )) : Id Block -> State .
+
+  sort States .
+  subsort State < States .
+  op .States : -> States .
+  op _ _ : States States -> States [assoc comm id: .States] .
+
   sort MachineSchemas .
-  subsort MachineStmt < MachineSchemas .
+  subsort MachineSchema < MachineSchemas .
   op .MachineSchemas : -> MachineSchemas .
   op _ ;; _ : MachineSchemas MachineSchemas -> MachineSchemas [assoc comm id: .MachineSchemas] .
+
+  --------------------------------------------------------------------------------
 
   op <machines>_</machines> : MachineSchemas -> Cell [prec 64 format (ngu o++i n--igu o)] .
 
   rl <k> ( machine I ; B ) Ss </k>
      <machines> Schemas </machines>
   => <k> Ss </k>
-     <machines> ( machine I ; B ) ;; Schemas </machines>
+     <machines> statementToMachineSchema(machine I ; B) ;; Schemas </machines>
    .
 
+  op <main>_</main> : Id -> Cell [prec 64 format (ngu o++i n--igu o)] .
   rl <k> ( main machine I ; B ) Ss </k>
-     <machines> Schemas </machines>
-  => <k> Ss </k>
-     <machines> (main machine I ; B ) ;; Schemas </machines>
+  => <k> ( machine I ; B ) Ss </k>
+     <main> I </main>
    .
 
-  --- For now, we we do not process "sends" clauses, so we ignore them.
+ --- For now, we we do not process "sends" clauses, so we ignore them.
   eq machine I sends Exps ; B
    = machine I ; B
    .
 
-  --- The schema for the main machine is used to initialize the machine soup.
-  rl <machines> ( main machine I ; B ) ;; Schemas </machines>
+ --- The schema for the main machine is used to initialize the machine soup.
+  rl <machines> (machine: I, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
+     <main> I </main>
      <soup> .Cell </soup>
-  => <machines> ( main machine I ; B ) ;; Schemas </machines>
-     <soup> ( < 0 | B | .VariableMap > ) </soup> .
+  => <machines> (machine: I, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
+     <soup> < 0 | Ss | Rho > </soup>
+   .
+
+  op statementToMachineSchema : MachineStmt                 -> MachineSchema .
+  op statementToMachineSchema : Stmt        [MachineSchema] -> MachineSchema .
+  -------------------------------------------
+  eq statementToMachineSchema(machine I ; B)
+   = statementToMachineSchema(B, (machine: I, start: noid, states: .States, initState: .VariableMap)) .
+
+  eq statementToMachineSchema({ Ss }, Schema*) = statementToMachineSchema(Ss, Schema*) .
+  eq statementToMachineSchema(var X : T ; Ss, (machine: I, start: Start:[Id], states: States, initState: Rho))
+   = statementToMachineSchema(Ss, (machine: I, start: Start:[Id], states: States, initState: (X |-> 0 Rho)))
+   .
+
+  eq statementToMachineSchema((start state SId B) Ss, (machine: MId, start: noid, states: States, initState: Rho))
+   = statementToMachineSchema((      state SId B) Ss, (machine: MId, start: SId,  states: States, initState: Rho))
+   .
+
+  eq statementToMachineSchema((state SId { entry B }) Ss, (machine: MId, start: StartId*, states: States, initState: Rho))
+   = statementToMachineSchema(                        Ss, (machine: MId, start: StartId*, states: ((state: SId, entry: B) States), initState: Rho))
+   .
+
+  eq statementToMachineSchema(.Stmt, Schema) = Schema .
+
+  --- Statements
+  --------------
 
   --- Other infrastructure
   ------------------------
@@ -74,12 +114,18 @@ mod P-SEMANTICS is including P-SYNTAX .
   op <_|_|_> : Int Stmt VariableMap -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
   op <soup>_</soup> : Cfg -> Cell [prec 64 format (ncu o++in n--icu p)] .
 
-  var I : Id .
+  var I X Y MId SId : Id .
+  var StartId* : [Id] .
+  var StartId  :  Id .
+  var T : Type .
   var B : Block .
-  var Ss : Stmt .
-  var M : VariableMap .
+  var Ss S1s S2s : Stmt .
+  var Rho : VariableMap .
   var C : Cfg .
   var Exps : Exps .
+  var States : States .
+  var Schema : MachineSchema .
+  var Schema* : [MachineSchema] .
   var Schemas : MachineSchemas .
 
 endm

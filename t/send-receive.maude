@@ -40,7 +40,6 @@ red SenderPgm .
 red ReceiverPgm .
 
 red init(SenderPgm ReceiverPgm) .
-
-rew init(SenderPgm ReceiverPgm) .
+rew init(main SenderPgm) .
 
 quit .
