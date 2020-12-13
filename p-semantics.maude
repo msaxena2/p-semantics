@@ -72,7 +72,7 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   --- "Reference" | "Executing Code" | "State"
   op <_|_|_> : Int Stmt VariableMap -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
-  op <soup>_</soup> : Cell -> Cell [prec 64 format (ncu o++in n--icu p)] .
+  op <soup>_</soup> : Cfg -> Cell [prec 64 format (ncu o++in n--icu p)] .
 
   var I : Id .
   var B : Block .
