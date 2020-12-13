@@ -50,34 +50,31 @@ result Cfg:
   }
 </k> 
 <machines>  .MachineSchemas
-</machines> 
-<soup>  
-.Cell
-</soup>
+</machines>
 ==========================================
-rewrite in P-SEND-RECIEVE-TEST : init(main SenderPgm) .
+rewrite in P-SEND-RECIEVE-TEST : init(main SenderPgm
+ReceiverPgm) .
 result Cfg: 
-<k>  .Stmt
-</k> 
-<machines>  (machine: Sender,start: Init,states: (state: Init,entry: {
+<machines>  statementToMachineSchema(state Init {
+    on ePing do {
+      goto Done ;
+    }
+  }, (machine: Receiver,start: Init,states: .States,initState: .VariableMap)) ;; (machine: Sender,start: Init,states: (state: Init,entry: {
     receiver = new Receiver(.Exps) ;
     goto SendRequests ;
   }) (state: SendRequests,entry: {
     send receiver,ePing ;
   }),initState: 
     receiver |-> 0  )
-</machines> 
+</machines> <counter: 3 > 
 <soup>  
-<
+(new: Receiver,2,.Exps) <
   0  
 |
-    {
-      receiver = new Receiver(.Exps) ;
-      goto SendRequests ;
-    }  
+    goto SendRequests ;  
 |
     
-      receiver |-> 0      
+      receiver |-> 1      
 >
 </soup>
 Bye.

@@ -22,7 +22,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   eq init(Ss)
    = <k> Ss </k>
      <machines> .MachineSchemas </machines>
-     <soup> .Cell </soup>
    .
 
   --- Machine Statements
@@ -58,7 +57,7 @@ mod P-SEMANTICS is including P-SYNTAX .
      <machines> statementToMachineSchema(machine I ; B) ;; Schemas </machines>
    .
 
-  op <main>_</main> : Id -> Cell [prec 64 format (ngu o++i n--igu o)] .
+  op <main>_</main> : Id -> Cell [prec 64] .
   rl <k> ( main machine I ; B ) Ss </k>
   => <k> ( machine I ; B ) Ss </k>
      <main> I </main>
@@ -70,11 +69,11 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- The schema for the main machine is used to initialize the machine soup.
-  rl <machines> (machine: I, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
-     <main> I </main>
-     <soup> .Cell </soup>
-  => <machines> (machine: I, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
-     <soup> < 0 | Ss | Rho > </soup>
+  op <counter: _ > : Nat -> Cell [prec 64] .
+  rl <k> .Stmt </k>
+     <main> MId </main>
+  => <counter: 1 >
+     <soup> (new: MId, 0, .Exps) </soup>
    .
 
   op statementToMachineSchema : MachineStmt                 -> MachineSchema .
@@ -101,6 +100,26 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- Statements
   --------------
 
+  eq < N | { Ss } | Rho > = < N | Ss | Rho > .
+
+ --- Assignment
+  eq < M | X = V ; Ss | (X |-> V2 Rho) >
+   = < M |         Ss | (X |-> V  Rho) >
+   .
+
+ --- new
+  eq <soup> < M | X = new MId(Exps); Ss | Rho >                             C </soup> <counter: N >
+   = <soup> < M | X = N ;            Ss | Rho > (new: MId, N +Int 1, Exps)  C </soup> <counter: N +Int 2 >
+   .
+
+ --- MachineId, Identifier, Arguments
+  op ((new: _, _, _)) : Id Nat Exps -> Cell .
+  eq <soup> (new: MId, N, Exps) C </soup>
+     <machines> (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
+   = <soup> < N | Ss | Rho > C </soup>
+     <machines> (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
+   .
+
   --- Other infrastructure
   ------------------------
 
@@ -115,6 +134,8 @@ mod P-SEMANTICS is including P-SYNTAX .
   op <soup>_</soup> : Cfg -> Cell [prec 64 format (ncu o++in n--icu p)] .
 
   var I X Y MId SId : Id .
+  var N M : Nat .
+  var V V1 V2 : Int .
   var StartId* : [Id] .
   var StartId  :  Id .
   var T : Type .
