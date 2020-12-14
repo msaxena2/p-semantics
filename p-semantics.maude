@@ -55,21 +55,21 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   op <machines>_</machines> : MachineSchemas -> Cell [prec 64 format (ngu o++i n--igu o)] .
 
-  rl <k> ( machine I ; B ) Ss </k>
+  rl <k> ( machine Id ; B ) Ss </k>
      <machines> Schemas </machines>
   => <k> Ss </k>
-     <machines> statementToMachineSchema(machine I ; B) ;; Schemas </machines>
+     <machines> statementToMachineSchema(machine Id ; B) ;; Schemas </machines>
    .
 
   op <main>_</main> : Id -> Cell [prec 64] .
-  rl <k> ( main machine I ; B ) Ss </k>
-  => <k> ( machine I ; B ) Ss </k>
-     <main> I </main>
+  rl <k> ( main machine Id ; B ) Ss </k>
+  => <k> ( machine Id ; B ) Ss </k>
+     <main> Id </main>
    .
 
  --- For now, we we do not process "sends" clauses, so we ignore them.
-  eq machine I sends Exps ; B
-   = machine I ; B
+  eq machine Id sends Exps ; B
+   = machine Id ; B
    .
 
  --- The schema for the main machine is used to initialize the machine soup.
@@ -83,12 +83,12 @@ mod P-SEMANTICS is including P-SYNTAX .
   op statementToMachineSchema : MachineStmt                 -> MachineSchema .
   op statementToMachineSchema : Stmt        [MachineSchema] -> MachineSchema .
   -------------------------------------------
-  eq statementToMachineSchema(machine I ; B)
-   = statementToMachineSchema(B, (machine: I, start: noid, states: .States, initState: .VariableMap)) .
+  eq statementToMachineSchema(machine Id ; B)
+   = statementToMachineSchema(B, (machine: Id, start: noid, states: .States, initState: .VariableMap)) .
 
   eq statementToMachineSchema({ Ss }, Schema*) = statementToMachineSchema(Ss, Schema*) .
-  eq statementToMachineSchema(var X : T ; Ss, (machine: I, start: Start:[Id], states: States, initState: Rho))
-   = statementToMachineSchema(Ss, (machine: I, start: Start:[Id], states: States, initState: (X |-> 0 Rho)))
+  eq statementToMachineSchema(var X : T ; Ss, (machine: Id, start: Start:[Id], states: States, initState: Rho))
+   = statementToMachineSchema(Ss, (machine: Id, start: Start:[Id], states: States, initState: (X |-> 0 Rho)))
    .
 
   eq statementToMachineSchema((start state SId B) Ss, (machine: MId, start: noid, states: States, initState: Rho))
@@ -153,7 +153,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
 
 
-  var I X Y MId SId : Id .
+  var X Y Id MId SId : Id .
   var N M : Nat .
   var V V1 V2 : Int .
   var StartId* : [Id] .
