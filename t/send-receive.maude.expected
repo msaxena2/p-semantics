@@ -68,13 +68,13 @@ result Cfg:
     receiver |-> 0  )
 </machines> <counter: 3 > 
 <soup>  
-(new: Receiver,2,.Exps) <
+<
   0  
 |
     goto SendRequests ;  
 |
     
       receiver |-> 1      
->
+> (new: Receiver,2,.Exps)
 </soup>
 Bye.
