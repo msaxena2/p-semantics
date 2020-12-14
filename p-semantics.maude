@@ -47,6 +47,10 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .MachineSchemas : -> MachineSchemas .
   op _ ;; _ : MachineSchemas MachineSchemas -> MachineSchemas [assoc comm id: .MachineSchemas] .
 
+  var Schema : MachineSchema .
+  var Schema* : [MachineSchema] .
+  var Schemas : MachineSchemas .
+
   --------------------------------------------------------------------------------
 
   op <machines>_</machines> : MachineSchemas -> Cell [prec 64 format (ngu o++i n--igu o)] .
@@ -97,9 +101,28 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   eq statementToMachineSchema(.Stmt, Schema) = Schema .
 
+
+ --- Machine Instances
+ ---------------------
+
+  sort MachineInstance MachineInstances .
+  subsort MachineInstance < MachineInstances .
+  op .MachineInstances : -> MachineInstances .
+  op _ _ : MachineInstances MachineInstances -> MachineInstances [prec 65 assoc comm id: .MachineInstances] .
+
+ --- arguments: Reference | Code | StateCell
+  op <_|_|_> : Int Stmt VariableMap -> MachineInstance [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
+
+  var Machine  : MachineInstance .
+  var Machines : MachineInstances .
+
+  op <soup>_</soup> : MachineInstances -> Cell [prec 64 format (ncu o++in n--icu p)] .
+
   --- Statements
   --------------
 
+
+ --- Blocks
   eq < N | { Ss } | Rho > = < N | Ss | Rho > .
 
  --- Assignment
@@ -108,15 +131,15 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- new
-  eq <soup> < M | X = new MId(Exps); Ss | Rho >                             C </soup> <counter: N >
-   = <soup> < M | X = N ;            Ss | Rho > (new: MId, N +Int 1, Exps)  C </soup> <counter: N +Int 2 >
+  eq <soup> < M | X = new MId(Exps); Ss | Rho >                             Machines </soup> <counter: N >
+   = <soup> < M | X = N ;            Ss | Rho > (new: MId, N +Int 1, Exps)  Machines </soup> <counter: N +Int 2 >
    .
 
- --- MachineId, Identifier, Arguments
-  op ((new: _, _, _)) : Id Nat Exps -> Cell .
-  eq <soup> (new: MId, N, Exps) C </soup>
+ --- arguments: MachineId, Identifier, Arguments
+  op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
+  eq <soup> (new: MId, N, Exps) Machines </soup>
      <machines> (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
-   = <soup> < N | Ss | Rho > C </soup>
+   = <soup> < N | Ss | Rho > Machines </soup>
      <machines> (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
    .
 
@@ -129,9 +152,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _|->_ : Id Exp -> VariableMap [prec 60 format (n++i r o --i) ] .
   op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
 
-  --- "Reference" | "Executing Code" | "State"
-  op <_|_|_> : Int Stmt VariableMap -> Cell [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
-  op <soup>_</soup> : Cfg -> Cell [prec 64 format (ncu o++in n--icu p)] .
 
   var I X Y MId SId : Id .
   var N M : Nat .
@@ -145,9 +165,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   var C : Cfg .
   var Exps : Exps .
   var States : States .
-  var Schema : MachineSchema .
-  var Schema* : [MachineSchema] .
-  var Schemas : MachineSchemas .
+
 
 endm
 
