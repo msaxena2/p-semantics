@@ -24,7 +24,7 @@ mod P-SEMANTICS is including P-SYNTAX .
      ( machines:  .MachineSchemas )
    .
 
-  --- Machine Statements
+  --- Machine Schemas
   ----------------------
 
   --- Machine statements are schema for initializing new machines.
@@ -43,8 +43,16 @@ mod P-SEMANTICS is including P-SYNTAX .
   op (( machine: _ , _ )) : Id MachineAttributes -> MachineSchema .
   op noid : -> [Id] .
 
+  --- States
+  ----------
   sort State .
-  op (( state: _, entry: _ )) : Id Block -> State .
+  sort StateAttributes .
+  op .SAttrs : -> StateAttributes .
+  op _ , _ : StateAttributes StateAttributes -> StateAttributes [prec 65 assoc comm id: .SAttrs] .
+  var SAttrs : StateAttributes .
+  op (( entry: _ )) : Block -> StateAttributes .
+
+  op (( state: _, _ )) : Id StateAttributes -> State .
 
   sort States .
   subsort State < States .
@@ -105,7 +113,7 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
   eq statementToMachineSchema((state SId { entry B }) Ss, (machine: MId, (states: States),                        MAttrs*))
-   = statementToMachineSchema(                        Ss, (machine: MId, (states: (state: SId, entry: B) States), MAttrs*))
+   = statementToMachineSchema(                        Ss, (machine: MId, (states: (state: SId, (entry: B)) States), MAttrs*))
    .
 
   eq statementToMachineSchema(.Stmt, Schema) = Schema .
@@ -155,9 +163,9 @@ mod P-SEMANTICS is including P-SYNTAX .
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
   eq (instances: (new: MId, N, Exps) Machines )
-     (machines:  (machine: MId, (states: (state: StartId, entry: Ss) States), (initState: Rho), MAttrs) ;; Schemas )
+     (machines:  (machine: MId, (states: (state: StartId, (entry: Ss), SAttrs) States), (initState: Rho), MAttrs) ;; Schemas )
    = (instances: (instance: N , (code: Ss), (state: Rho)) Machines )
-     (machines:  (machine: MId, (states: (state: StartId, entry: Ss) States), (initState: Rho), MAttrs) ;; Schemas )
+     (machines:  (machine: MId, (states: (state: StartId, (entry: Ss), SAttrs) States), (initState: Rho), MAttrs) ;; Schemas )
    .
 
   --- Other infrastructure
@@ -168,7 +176,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .VariableMap : -> VariableMap .
   op _|->_ : Id Exp -> VariableMap [prec 60 format (n++i r o --i) ] .
   op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
-
 
   var X Y Id MId SId : Id .
   var N M : Nat .

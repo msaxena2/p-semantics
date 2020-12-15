@@ -55,12 +55,12 @@ result Attributes:
 rewrite in P-SEND-RECIEVE-TEST : init(main SenderPgm
 ReceiverPgm) .
 result Attributes: 
-(  machines: (machine: Sender,(start: Init),(states: (state: Init,entry: {
+(  machines: (machine: Sender,(start: Init),(states: (state: Init,(entry: {
     receiver = new Receiver(.Exps) ;
     goto SendRequests ;
-  }) (state: SendRequests,entry: {
+  })) (state: SendRequests,(entry: {
     send receiver,ePing ;
-  })),(initState: 
+  }))),(initState: 
     receiver |-> 0  )) ;; statementToMachineSchema(state Init {
     on ePing do {
       goto Done ;
