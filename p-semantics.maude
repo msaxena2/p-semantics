@@ -31,7 +31,16 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- For each machine statement, we load them into the ( machine: ) record.
 
   sort MachineSchema .
-  op (( machine: _ , start: _ , states: _ , initState: _ )) : Id Id States VariableMap -> MachineSchema .
+  sort MachineAttributes .
+  op .MAttrs : -> MachineAttributes .
+  op _ , _ : MachineAttributes MachineAttributes -> MachineAttributes [prec 65 assoc comm id: .MAttrs] .
+  var MAttrs : MachineAttributes .
+  var MAttrs* : [MachineAttributes] .
+  op (( start:     _ )) : Id          -> MachineAttributes .
+  op (( states:    _ )) : States      -> MachineAttributes .
+  op (( initState: _ )) : VariableMap -> MachineAttributes .
+
+  op (( machine: _ , _ )) : Id MachineAttributes -> MachineSchema .
   op noid : -> [Id] .
 
   sort State .
@@ -84,19 +93,19 @@ mod P-SEMANTICS is including P-SYNTAX .
   op statementToMachineSchema : Stmt        [MachineSchema] -> MachineSchema .
   -------------------------------------------
   eq statementToMachineSchema(machine Id ; B)
-   = statementToMachineSchema(B, (machine: Id, start: noid, states: .States, initState: .VariableMap)) .
+   = statementToMachineSchema(B, (machine: Id, (start: noid), (states: .States), (initState: .VariableMap))) .
 
   eq statementToMachineSchema({ Ss }, Schema*) = statementToMachineSchema(Ss, Schema*) .
-  eq statementToMachineSchema(var X : T ; Ss, (machine: Id, start: Start:[Id], states: States, initState: Rho))
-   = statementToMachineSchema(Ss, (machine: Id, start: Start:[Id], states: States, initState: (X |-> 0 Rho)))
+  eq statementToMachineSchema(var X : T ; Ss, (machine: Id, (initState: Rho          ), MAttrs*))
+   = statementToMachineSchema(Ss,             (machine: Id, (initState: (X |-> 0 Rho)), MAttrs*))
    .
 
-  eq statementToMachineSchema((start state SId B) Ss, (machine: MId, start: noid, states: States, initState: Rho))
-   = statementToMachineSchema((      state SId B) Ss, (machine: MId, start: SId,  states: States, initState: Rho))
+  eq statementToMachineSchema((start state SId B) Ss, (machine: MId, (start: noid), MAttrs))
+   = statementToMachineSchema((      state SId B) Ss, (machine: MId, (start: SId),  MAttrs))
    .
 
-  eq statementToMachineSchema((state SId { entry B }) Ss, (machine: MId, start: StartId*, states: States, initState: Rho))
-   = statementToMachineSchema(                        Ss, (machine: MId, start: StartId*, states: ((state: SId, entry: B) States), initState: Rho))
+  eq statementToMachineSchema((state SId { entry B }) Ss, (machine: MId, (states: States),                        MAttrs*))
+   = statementToMachineSchema(                        Ss, (machine: MId, (states: (state: SId, entry: B) States), MAttrs*))
    .
 
   eq statementToMachineSchema(.Stmt, Schema) = Schema .
@@ -113,9 +122,9 @@ mod P-SEMANTICS is including P-SYNTAX .
   sort InstanceAttributes .
   op .IAttrs : -> InstanceAttributes .
   op _ , _ : InstanceAttributes InstanceAttributes -> InstanceAttributes [prec 65 assoc comm id: .IAttrs] .
+  var IAttrs : InstanceAttributes .
   op ((code:   _ )) : Stmt        -> InstanceAttributes .
   op ((state:  _ )) : VariableMap -> InstanceAttributes .
-  var IAttrs : InstanceAttributes .
 
  --- arguments: Reference | Code | StateCell
   op (( instance: _ , _ )) : Int InstanceAttributes -> MachineInstance [prec 63] .
@@ -129,13 +138,13 @@ mod P-SEMANTICS is including P-SYNTAX .
  --------------
 
  --- Blocks
-  eq ( instance: N , (code: { Ss }) , IAttrs)
-   = ( instance: N , (code:   Ss  ) , IAttrs)
+  eq (instance: N , (code: { Ss }) , IAttrs)
+   = (instance: N , (code:   Ss  ) , IAttrs)
    .
 
  --- Assignment
-  eq ( instance: M , (code: X = V ; Ss), (state: X |-> V2 Rho), IAttrs )
-   = ( instance: M , (code:         Ss), (state: X |-> V  Rho), IAttrs )
+  eq (instance: M , (code: X = V ; Ss), (state: X |-> V2 Rho), IAttrs )
+   = (instance: M , (code:         Ss), (state: X |-> V  Rho), IAttrs )
    .
 
  --- new
@@ -146,9 +155,9 @@ mod P-SEMANTICS is including P-SYNTAX .
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
   eq (instances: (new: MId, N, Exps) Machines )
-     (machines:  (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas )
+     (machines:  (machine: MId, (states: (state: StartId, entry: Ss) States), (initState: Rho), MAttrs) ;; Schemas )
    = (instances: (instance: N , (code: Ss), (state: Rho)) Machines )
-     (machines:  (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas )
+     (machines:  (machine: MId, (states: (state: StartId, entry: Ss) States), (initState: Rho), MAttrs) ;; Schemas )
    .
 
   --- Other infrastructure
@@ -173,7 +182,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   var C : Attributes .
   var Exps : Exps .
   var States : States .
-
 
 endm
 
