@@ -68,7 +68,7 @@ result Attributes:
     receiver |-> 0  )
 ) (counter: 3) 
 (  
-instances: (instance: 0,pgm: goto SendRequests ;,state: 
-    receiver |-> 1  ) (new: Receiver,2,.Exps)
+instances: (instance: 0,(code: goto SendRequests ;),(state: 
+    receiver |-> 1  )) (new: Receiver,2,.Exps)
 )
 Bye.

@@ -110,8 +110,15 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .MachineInstances : -> MachineInstances .
   op _ _ : MachineInstances MachineInstances -> MachineInstances [prec 65 assoc comm id: .MachineInstances] .
 
+  sort InstanceAttributes .
+  op .IAttrs : -> InstanceAttributes .
+  op _ , _ : InstanceAttributes InstanceAttributes -> InstanceAttributes [prec 65 assoc comm id: .IAttrs] .
+  op ((code:   _ )) : Stmt        -> InstanceAttributes .
+  op ((state:  _ )) : VariableMap -> InstanceAttributes .
+  var IAttrs : InstanceAttributes .
+
  --- arguments: Reference | Code | StateCell
-  op (( instance: _ , pgm: _ , state: _ )) : Int Stmt VariableMap -> MachineInstance [prec 63] .
+  op (( instance: _ , _ )) : Int InstanceAttributes -> MachineInstance [prec 63] .
 
   var Machine  : MachineInstance .
   var Machines : MachineInstances .
@@ -122,25 +129,25 @@ mod P-SEMANTICS is including P-SYNTAX .
  --------------
 
  --- Blocks
-  eq ( instance: N , pgm: { Ss } , state: Rho )
-   = ( instance: N , pgm:   Ss   , state: Rho )
+  eq ( instance: N , (code: { Ss }) , IAttrs)
+   = ( instance: N , (code:   Ss  ) , IAttrs)
    .
 
  --- Assignment
-  eq ( instance: M , pgm: X = V ; Ss , state: (X |-> V2 Rho) )
-   = ( instance: M , pgm:         Ss , state: (X |-> V  Rho) )
+  eq ( instance: M , (code: X = V ; Ss), (state: X |-> V2 Rho), IAttrs )
+   = ( instance: M , (code:         Ss), (state: X |-> V  Rho), IAttrs )
    .
 
  --- new
-  eq (instances: ( instance: M , pgm: X = new MId(Exps); Ss , state: Rho )                             Machines ) ( counter: N )
-   = (instances: ( instance: M , pgm: X = N ;            Ss , state: Rho ) (new: MId, N +Int 1, Exps)  Machines ) ( counter: N +Int 2 )
+  eq (instances: ( instance: M , (code: X = new MId(Exps); Ss), IAttrs)                             Machines ) ( counter: N )
+   = (instances: ( instance: M , (code: X = N ;            Ss), IAttrs) (new: MId, N +Int 1, Exps)  Machines ) ( counter: N +Int 2 )
    .
 
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
   eq (instances: (new: MId, N, Exps) Machines )
      (machines:  (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas )
-   = (instances: (instance: N , pgm: Ss, state: Rho) Machines )
+   = (instances: (instance: N , (code: Ss), (state: Rho)) Machines )
      (machines:  (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas )
    .
 
