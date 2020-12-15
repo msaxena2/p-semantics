@@ -26,8 +26,8 @@ result MachineStmt: machine Receiver ; {
 ==========================================
 reduce in P-SEND-RECIEVE-TEST : init(SenderPgm
 ReceiverPgm) .
-result Cfg: 
-<k>  machine Sender ; {
+result Attributes: 
+(  pgm: machine Sender ; {
     var receiver : Receiver ;
     start state Init {
       entry {
@@ -48,14 +48,14 @@ result Cfg:
       }
     }
   }
-</k> 
-<machines>  .MachineSchemas
-</machines>
+) 
+(  machines: .MachineSchemas
+)
 ==========================================
 rewrite in P-SEND-RECIEVE-TEST : init(main SenderPgm
 ReceiverPgm) .
-result Cfg: 
-<machines>  statementToMachineSchema(state Init {
+result Attributes: 
+(  machines: statementToMachineSchema(state Init {
     on ePing do {
       goto Done ;
     }
@@ -66,15 +66,9 @@ result Cfg:
     send receiver,ePing ;
   }),initState: 
     receiver |-> 0  )
-</machines> <counter: 3 > 
-<soup>  
-<
-  0  
-|
-    goto SendRequests ;  
-|
-    
-      receiver |-> 1      
-> (new: Receiver,2,.Exps)
-</soup>
+) (counter: 3) 
+(  
+instances: (instance: 0,pgm: goto SendRequests ;,state: 
+    receiver |-> 1  ) (new: Receiver,2,.Exps)
+)
 Bye.

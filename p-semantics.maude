@@ -2,33 +2,33 @@ in "p-syntax.maude"
 
 mod P-SEMANTICS is including P-SYNTAX .
 
-  --- Configuration
+  --- State
   -----------------
 
-  --- The configuration consists of a AC soup of cells.
+  --- The state consists of a AC soup of attributes.
 
-  sorts Cell Cfg .
-  subsort Cell < Cfg .
-  op .Cell : -> Cfg .
-  op __ : Cfg Cfg -> Cfg [prec 65 assoc comm id: .Cell] .
+  sorts Attribute Attributes .
+  subsort Attribute < Attributes .
+  op .Attribute : -> Attributes .
+  op __ : Attributes Attributes -> Attributes [prec 65 assoc comm id: .Attribute] .
 
   --- The init constructs an initial configuration from a program
-  --- with the <k> cell storing the initial program.
+  --- with the ( pgm: cell storing the initial program.
 
-  op <k>_</k> : Stmt -> Cell [prec 64 format (ncu o++i n--icu o)] .
+  op (( pgm: _ )) : Stmt -> Attribute [prec 64 format (ncu o++i o n--icu o)] .
 
-  op init : Stmt -> Cfg .
+  op init : Stmt -> Attributes .
   -----------------------
   eq init(Ss)
-   = <k> Ss </k>
-     <machines> .MachineSchemas </machines>
+   = ( pgm: Ss )
+     ( machines:  .MachineSchemas )
    .
 
   --- Machine Statements
   ----------------------
 
   --- Machine statements are schema for initializing new machines.
-  --- For each machine statement, we load them into the <machine> cell.
+  --- For each machine statement, we load them into the ( machine: ) record.
 
   sort MachineSchema .
   op (( machine: _ , start: _ , states: _ , initState: _ )) : Id Id States VariableMap -> MachineSchema .
@@ -53,18 +53,18 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   --------------------------------------------------------------------------------
 
-  op <machines>_</machines> : MachineSchemas -> Cell [prec 64 format (ngu o++i n--igu o)] .
+  op (( machines: _ )) : MachineSchemas -> Attribute [prec 64 format (ngu o++i o n--igu o)] .
 
-  rl <k> ( machine Id ; B ) Ss </k>
-     <machines> Schemas </machines>
-  => <k> Ss </k>
-     <machines> statementToMachineSchema(machine Id ; B) ;; Schemas </machines>
+  rl ( pgm: ( machine Id ; B ) Ss )
+     (machines:  Schemas )
+  => ( pgm: Ss )
+     (machines:  statementToMachineSchema(machine Id ; B) ;; Schemas )
    .
 
-  op <main>_</main> : Id -> Cell [prec 64] .
-  rl <k> ( main machine Id ; B ) Ss </k>
-  => <k> ( machine Id ; B ) Ss </k>
-     <main> Id </main>
+  op (( main: _ )) : Id -> Attribute [prec 64] .
+  rl ( pgm: ( main machine Id ; B ) Ss )
+  => ( pgm: ( machine Id ; B ) Ss )
+     ( main:  Id  )
    .
 
  --- For now, we we do not process "sends" clauses, so we ignore them.
@@ -73,11 +73,11 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- The schema for the main machine is used to initialize the machine soup.
-  op <counter: _ > : Nat -> Cell [prec 64] .
-  rl <k> .Stmt </k>
-     <main> MId </main>
-  => <counter: 1 >
-     <soup> (new: MId, 0, .Exps) </soup>
+  op (( counter: _ )) : Nat -> Attribute [prec 64] .
+  rl ( pgm: .Stmt )
+     ( main:  MId  )
+  => ( counter: 1 )
+     ( instances: (new: MId, 0, .Exps) )
    .
 
   op statementToMachineSchema : MachineStmt                 -> MachineSchema .
@@ -111,36 +111,37 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _ _ : MachineInstances MachineInstances -> MachineInstances [prec 65 assoc comm id: .MachineInstances] .
 
  --- arguments: Reference | Code | StateCell
-  op <_|_|_> : Int Stmt VariableMap -> MachineInstance [prec 63 format (o ni++ --ino n++i --inr on++i --in o)] .
+  op (( instance: _ , pgm: _ , state: _ )) : Int Stmt VariableMap -> MachineInstance [prec 63] .
 
   var Machine  : MachineInstance .
   var Machines : MachineInstances .
 
-  op <soup>_</soup> : MachineInstances -> Cell [prec 64 format (ncu o++in n--icu p)] .
+  op (( instances: _ )) : MachineInstances -> Attribute [prec 64 format (ncu o++in o n--icu p)] .
 
-  --- Statements
-  --------------
-
+ --- Statements
+ --------------
 
  --- Blocks
-  eq < N | { Ss } | Rho > = < N | Ss | Rho > .
+  eq ( instance: N , pgm: { Ss } , state: Rho )
+   = ( instance: N , pgm:   Ss   , state: Rho )
+   .
 
  --- Assignment
-  eq < M | X = V ; Ss | (X |-> V2 Rho) >
-   = < M |         Ss | (X |-> V  Rho) >
+  eq ( instance: M , pgm: X = V ; Ss , state: (X |-> V2 Rho) )
+   = ( instance: M , pgm:         Ss , state: (X |-> V  Rho) )
    .
 
  --- new
-  eq <soup> < M | X = new MId(Exps); Ss | Rho >                             Machines </soup> <counter: N >
-   = <soup> < M | X = N ;            Ss | Rho > (new: MId, N +Int 1, Exps)  Machines </soup> <counter: N +Int 2 >
+  eq (instances: ( instance: M , pgm: X = new MId(Exps); Ss , state: Rho )                             Machines ) ( counter: N )
+   = (instances: ( instance: M , pgm: X = N ;            Ss , state: Rho ) (new: MId, N +Int 1, Exps)  Machines ) ( counter: N +Int 2 )
    .
 
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
-  eq <soup> (new: MId, N, Exps) Machines </soup>
-     <machines> (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
-   = <soup> < N | Ss | Rho > Machines </soup>
-     <machines> (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas </machines>
+  eq (instances: (new: MId, N, Exps) Machines )
+     (machines:  (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas )
+   = (instances: (instance: N , pgm: Ss, state: Rho) Machines )
+     (machines:  (machine: MId, start: StartId, states: ((state: StartId, entry: Ss) States), initState: Rho) ;; Schemas )
    .
 
   --- Other infrastructure
@@ -162,7 +163,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   var B : Block .
   var Ss S1s S2s : Stmt .
   var Rho : VariableMap .
-  var C : Cfg .
+  var C : Attributes .
   var Exps : Exps .
   var States : States .
 
