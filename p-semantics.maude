@@ -160,6 +160,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   var IAttrs : InstanceAttributes .
   op ((code:   _ )) : Stmt        -> InstanceAttributes .
   op ((variables:  _ )) : VariableMap -> InstanceAttributes .
+  op ((state:  _ )) : Id -> InstanceAttributes .
   op ((mid:  _ )) : Id -> InstanceAttributes .
 
  --- arguments: Reference | Code | StateCell
@@ -184,33 +185,46 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- goto
-  eq (instance: M , (code: goto Id ; Ss), (variables: X |-> V2 Rho), IAttrs )
-   = (instance: M , (code: enterState(Id)), (variables: Rho), IAttrs)
+  rl (instance: M , (code: goto Id ; Ss), (variables: X |-> V2 Rho), IAttrs )
+  => (instance: M , enterState(Id), (variables: Rho), IAttrs)
    .
 
  --- new
-  eq ( counter: N )
-     (instances: ( instance: M , (code: X = new MId(Exps); Ss), IAttrs) Machines ) 
-   = ( counter: N +Int 2 )
-     (instances: ( instance: M , (code: X = N ;            Ss), IAttrs) Machines 
+  rl ( counter: N )
+     (instances: ( instance: M , (code: X = new MId(Exps); Ss), IAttrs) Machines )
+  => ( counter: N +Int 2 )
+     (instances: ( instance: M , (code: X = N ;            Ss), IAttrs) Machines
                     (new: MId, N +Int 1, Exps)
-     )                                     
+     )
    .
 
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
-  rl (instances: (new: MId, N, Exps) Machines )
+  eq (instances: (new: MId, N, Exps) Machines )
      (machines:  (machine: MId, (start: StartId), (initState: Rho), MAttrs) ;; Schemas )
-  => (instances: (instance: N , (mid: MId), (code: enterState(StartId)), (variables: Rho)) Machines )
+   = (instances: (instance: N , (mid: MId), enterState(StartId), (state: noid), (variables: Rho)) Machines )
      (machines:  (machine: MId, (start: StartId), (initState: Rho), MAttrs) ;; Schemas )
    .
 
-  op enterState : Id -> Stmt .
-  eq (instances: (instance: M , (mid: MId), (code: enterState(SId)), IAttrs) Machines)
+  op enterState : Id -> InstanceAttributes .
+  eq (instances: (instance: M , (mid: MId), (state: Id*), enterState(SId), IAttrs) Machines)
+     (machines:  (machine: MId, (states: (state: SId, SAttrs) States), MAttrs) ;; Schemas )
+   = (instances: (instance: M , (mid: MId), (state: SId), enterState.code(SId), IAttrs) Machines)
+     (machines:  (machine: MId, (states: (state: SId, SAttrs) States), MAttrs) ;; Schemas )
+   .
+
+  op enterState.code : Id -> InstanceAttributes .
+  eq (instances: (instance: M , (mid: MId), enterState.code(SId), IAttrs) Machines)
      (machines:  (machine: MId, (states: (state: SId, (entry: Ss), SAttrs) States), MAttrs) ;; Schemas )
    = (instances: (instance: M , (mid: MId), (code: Ss), IAttrs) Machines)
      (machines:  (machine: MId, (states: (state: SId, (entry: Ss), SAttrs) States), MAttrs) ;; Schemas )
-   .  
+   .
+  eq (instances: (instance: M , (mid: MId), enterState.code(SId), IAttrs) Machines)
+     (machines:  (machine: MId, (states: (state: SId, SAttrs) States), MAttrs) ;; Schemas )
+   = (instances: (instance: M , (mid: MId),             IAttrs) Machines)
+     (machines:  (machine: MId, (states: (state: SId, SAttrs) States), MAttrs) ;; Schemas )
+     [owise]
+   .
 
   --- Other infrastructure
   ------------------------
@@ -224,6 +238,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   var X Y Id MId SId EId : Id .
   var N M : Nat .
   var V V1 V2 : Int .
+  var Id* : [Id] .
   var StartId* : [Id] .
   var StartId  :  Id .
   var T : Type .
