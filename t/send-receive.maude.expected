@@ -99,7 +99,6 @@ result Attributes:
     ))
   ) (counter: 3) 
 (    
-instances: (instance: 0,(code: goto SendRequests ;),(state: 
-      receiver |-> 1    )) (new: Receiver,2,.Exps)
+instances: (instance: 0,(code: send receiver,ePing ;),(state: .VariableMap),(mid: Sender)) (instance: 2,(code: enterState(Init)),(state: .VariableMap),(mid: Receiver))
   )
 Bye.

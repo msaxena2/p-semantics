@@ -41,5 +41,6 @@ red ReceiverPgm .
 
 red init(SenderPgm ReceiverPgm) .
 rew init(main SenderPgm ReceiverPgm) .
+--- search init(main SenderPgm ReceiverPgm) =>* C:Attributes .
 
 quit .
