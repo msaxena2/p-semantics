@@ -159,7 +159,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _ , _ : InstanceAttributes InstanceAttributes -> InstanceAttributes [prec 65 assoc comm id: .IAttrs] .
   var IAttrs : InstanceAttributes .
   op ((code:   _ )) : Stmt        -> InstanceAttributes .
-  op ((state:  _ )) : VariableMap -> InstanceAttributes .
+  op ((variables:  _ )) : VariableMap -> InstanceAttributes .
   op ((mid:  _ )) : Id -> InstanceAttributes .
 
  --- arguments: Reference | Code | StateCell
@@ -179,13 +179,13 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- Assignment
-  eq (instance: M , (code: X = V ; Ss), (state: X |-> V2 Rho), IAttrs )
-   = (instance: M , (code:         Ss), (state: X |-> V  Rho), IAttrs )
+  eq (instance: M , (code: X = V ; Ss), (variables: X |-> V2 Rho), IAttrs )
+   = (instance: M , (code:         Ss), (variables: X |-> V  Rho), IAttrs )
    .
 
  --- goto
-  eq (instance: M , (code: goto Id ; Ss), (state: X |-> V2 Rho), IAttrs )
-   = (instance: M , (code: enterState(Id)), (state: Rho), IAttrs)
+  eq (instance: M , (code: goto Id ; Ss), (variables: X |-> V2 Rho), IAttrs )
+   = (instance: M , (code: enterState(Id)), (variables: Rho), IAttrs)
    .
 
  --- new
@@ -201,7 +201,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
   rl (instances: (new: MId, N, Exps) Machines )
      (machines:  (machine: MId, (start: StartId), (initState: Rho), MAttrs) ;; Schemas )
-  => (instances: (instance: N , (mid: MId), (code: enterState(StartId)), (state: Rho)) Machines )
+  => (instances: (instance: N , (mid: MId), (code: enterState(StartId)), (variables: Rho)) Machines )
      (machines:  (machine: MId, (start: StartId), (initState: Rho), MAttrs) ;; Schemas )
    .
 
