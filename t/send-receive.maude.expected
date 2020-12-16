@@ -62,12 +62,18 @@ result Attributes:
         ,(entry: {
           receiver = new Receiver(.Exps) ;
           goto SendRequests ;
-        }))
+        }),(actions:
+          .Actions
+        )
+)
       
       (state: SendRequests
         ,(entry: {
           send receiver,ePing ;
-        }))
+        }),(actions:
+          .Actions
+        )
+)
       
     )
 
@@ -75,20 +81,23 @@ result Attributes:
       
         receiver |-> 0      
     ))
-   ;; statementToMachineSchema(state Init {
-    on ePing do {
-      goto Done ;
-    }
-  }, (machine: Receiver
+   ;; (machine: Receiver
     ,(start: Init)
     ,(states:
-      .States
+      (state: Init
+        ,(actions:
+          (action: ePing,{
+            goto Done ;
+          })
+        )
+)
+      
     )
 
     ,(initState:
       .VariableMap
     ))
-  )) (counter: 3) 
+  ) (counter: 3) 
 (    
 instances: (instance: 0,(code: goto SendRequests ;),(state: 
       receiver |-> 1    )) (new: Receiver,2,.Exps)
