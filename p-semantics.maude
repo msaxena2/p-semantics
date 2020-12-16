@@ -51,6 +51,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _ , _ : StateAttributes StateAttributes -> StateAttributes [prec 65 assoc comm id: .SAttrs] .
   var SAttrs : StateAttributes .
   op (( entry: _ )) : Block -> StateAttributes .
+  op (( actions: _ )) : Actions -> StateAttributes [format(d d ++ni --ni n)] .
 
   op (( state: _, _ )) : Id StateAttributes -> State [format(d d d ++ni d d --ni) ] .
 
@@ -58,6 +59,18 @@ mod P-SEMANTICS is including P-SYNTAX .
   subsort State < States .
   op .States : -> States .
   op _ _ : States States -> States [assoc comm id: .States format(d ni d)] .
+
+  --- Actions
+  -----------
+  sort Action Actions .
+  subsort Action < Actions .
+
+  op .Actions : -> Actions .
+  op _ _ : Actions Actions -> Actions [prec 62 assoc comm id: .Actions] .
+  var Actns : Actions .
+
+  --- Arguments Id Code
+  op (( action: _ , _ )) : Id Stmt -> Action .
 
   sort MachineSchemas .
   subsort MachineSchema < MachineSchemas .
@@ -112,12 +125,26 @@ mod P-SEMANTICS is including P-SYNTAX .
    = statementToMachineSchema((      state SId B) Ss, (machine: MId, (start: SId),  MAttrs))
    .
 
-  eq statementToMachineSchema((state SId { entry B }) Ss, (machine: MId, (states: States),                        MAttrs*))
-   = statementToMachineSchema(                        Ss, (machine: MId, (states: (state: SId, (entry: B)) States), MAttrs*))
+  eq statementToMachineSchema((state SId B) Ss, (machine: MId, (states:                                                                   States), MAttrs*))
+   = statementToMachineSchema(              Ss, (machine: MId, (states: (statementToState(B, (state: SId, (actions: .Actions), .SAttrs))) States), MAttrs*))
    .
+
+  eq statementToState({ Ss }, State) = statementToState(Ss,     State) .
+
+  eq statementToState(entry B Ss, (state: SId,             SAttrs))
+   = statementToState(Ss        , (state: SId, (entry: B), SAttrs))
+   .
+
+  eq statementToState(on EId do B Ss, (state: SId, (actions:                  Actns), SAttrs))
+   = statementToState(Ss,             (state: SId, (actions: (action: EId, B) Actns), SAttrs))
+   .
+
+  eq statementToState(.Stmt, State) = State .
 
   eq statementToMachineSchema(.Stmt, Schema) = Schema .
 
+  --- Arguments: MachineId StateId Statements
+  op statementToState(_ , _) : Stmt State -> State .
 
  --- Machine Instances
  ---------------------
@@ -177,7 +204,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _|->_ : Id Exp -> VariableMap [prec 60 format (n++i r o --i) ] .
   op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
 
-  var X Y Id MId SId : Id .
+  var X Y Id MId SId EId : Id .
   var N M : Nat .
   var V V1 V2 : Int .
   var StartId* : [Id] .
@@ -188,6 +215,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   var Rho : VariableMap .
   var C : Attributes .
   var Exps : Exps .
+  var State : State .
   var States : States .
 
 endm
