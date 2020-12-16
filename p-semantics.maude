@@ -15,7 +15,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- The init constructs an initial configuration from a program
   --- with the ( pgm: cell storing the initial program.
 
-  op (( pgm: _ )) : Stmt -> Attribute [prec 64 format (ncu o++i o n--icu o)] .
+  op (( pgm: _ )) : Stmt -> Attribute [prec 64 format(n d ++i -- d)] .
 
   op init : Stmt -> Attributes .
   -----------------------
@@ -33,14 +33,14 @@ mod P-SEMANTICS is including P-SYNTAX .
   sort MachineSchema .
   sort MachineAttributes .
   op .MAttrs : -> MachineAttributes .
-  op _ , _ : MachineAttributes MachineAttributes -> MachineAttributes [prec 65 assoc comm id: .MAttrs] .
+  op _ , _ : MachineAttributes MachineAttributes -> MachineAttributes [prec 65 assoc comm id: .MAttrs format(d ni d d)] .
   var MAttrs : MachineAttributes .
   var MAttrs* : [MachineAttributes] .
-  op (( start:     _ )) : Id          -> MachineAttributes .
-  op (( states:    _ )) : States      -> MachineAttributes .
-  op (( initState: _ )) : VariableMap -> MachineAttributes .
+  op (( start:     _ )) : Id          -> MachineAttributes  .
+  op (( states:    _ )) : States      -> MachineAttributes [format(d d ++ni --ni n)] .
+  op (( initState: _ )) : VariableMap -> MachineAttributes [format(d d ++ni --ni d)] .
 
-  op (( machine: _ , _ )) : Id MachineAttributes -> MachineSchema .
+  op (( machine: _ , _ )) : Id MachineAttributes -> MachineSchema [format(d d d ++ni d d --ni)] .
   op noid : -> [Id] .
 
   --- States
@@ -52,12 +52,12 @@ mod P-SEMANTICS is including P-SYNTAX .
   var SAttrs : StateAttributes .
   op (( entry: _ )) : Block -> StateAttributes .
 
-  op (( state: _, _ )) : Id StateAttributes -> State .
+  op (( state: _, _ )) : Id StateAttributes -> State [format(d d d ++ni d d --ni) ] .
 
   sort States .
   subsort State < States .
   op .States : -> States .
-  op _ _ : States States -> States [assoc comm id: .States] .
+  op _ _ : States States -> States [assoc comm id: .States format(d ni d)] .
 
   sort MachineSchemas .
   subsort MachineSchema < MachineSchemas .
@@ -70,7 +70,7 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   --------------------------------------------------------------------------------
 
-  op (( machines: _ )) : MachineSchemas -> Attribute [prec 64 format (ngu o++i o n--igu o)] .
+  op (( machines: _ )) : MachineSchemas -> Attribute [prec 64 format (n d ++ni d d)] .
 
   rl ( pgm: ( machine Id ; B ) Ss )
      (machines:  Schemas )
