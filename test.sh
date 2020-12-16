@@ -31,11 +31,21 @@ print_usage() {
     echo """
     Usage:
 
-        $0
-            run tests
+      run all tests:
 
-        $0 update test_file1 [test_file2...]
-            update expected output
+        $0
+
+      run a list of tests:
+
+        $0 test <test1> [... <testn>]
+
+      run test, but do not check output:
+
+        $0 run <test1> [... <testn>]
+
+      update expected output:
+
+        $0 update <test1> [... <testn>]
     """
 }
 
