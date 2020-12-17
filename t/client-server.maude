@@ -11,40 +11,42 @@ mod DECLS-TEST is
 
  ops ServerClientInterface ClientInterface responseType : -> Type .
 
+ eq clientMachine = (
+   machine ClientMachine sends eRequest ;
+   { var a : int ;
+     var server : ServerClientInterface ;
+     var lastRecvSuccessfulReqId : int ;
+
+     state Init {
+       entry (payload : ServerClientInterface)
+       {
+         nextReqId = 1 ;
+         server = payload ;
+         goto StartPumpingRequests ;
+       }
+    }
+
+    state StartPumpingRequests {
+      entry {
+        var index : int ;
+        index = 0 ;
+        while(index < 2)
+        {
+            send server, eRequest, (source = this to ClientInterface , id = nextReqId) ;
+            nextReqId = nextReqId + 1 ;
+            index = index + 1 ;
+        }
+      }
+
+      on eResponse do (payload : responseType) {
+           assert(payload . id > lastRecvSuccessfulReqId) ;
+           lastRecvSuccessfulReqId = payload . id ;
+      }
+    }
+  } ) .
+
 endm
 
-parse machine ClientMachine sends eRequest ;
-  { var a : int ;
-    var server : ServerClientInterface ;
-    var lastRecvSuccessfulReqId : int ;
-
-    state Init {
-      entry (payload : ServerClientInterface)
-      {
-        nextReqId = 1 ;
-        server = payload ;
-        goto StartPumpingRequests ;
-      }
-   }
-
-   state StartPumpingRequests {
-     entry {
-       var index : int ;
-       index = 0 ;
-       while(index < 2)
-       {
-           send server, eRequest, (source = this to ClientInterface , id = nextReqId) ;
-           nextReqId = nextReqId + 1 ;
-           index = index + 1 ;
-       }
-     }
-
-     on eResponse do (payload : responseType) {
-          assert(payload . id > lastRecvSuccessfulReqId) ;
-          lastRecvSuccessfulReqId = payload . id ;
-     }
-   }
- }
-.
+red clientMachine .
 
 quit .

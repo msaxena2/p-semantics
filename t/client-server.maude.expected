@@ -1,4 +1,6 @@
-MachineStmt: machine ClientMachine sends eRequest ; {
+==========================================
+reduce in DECLS-TEST : clientMachine .
+result MachineStmt: machine ClientMachine sends eRequest ; {
   var a : int ;
   var server : ServerClientInterface ;
   var lastRecvSuccessfulReqId : int ;
