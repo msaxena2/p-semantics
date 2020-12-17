@@ -4,7 +4,7 @@ mod P-SYNTAX is protecting PL-DOMAINS .
 
   --- Probably need a better way to define Ids
   sort Id .
-  ops a b c d e f g h i j k l m n o p q r s t u v w x y z : -> Id [ctor] .
+  ops a b c d e f g h i j k l m n o p q r s t u v w x y z $ : -> Id [ctor] .
   ops this foo eFoo bar eBar buzz : -> Id .
 
   sort Type .
@@ -82,6 +82,10 @@ mod P-SYNTAX is protecting PL-DOMAINS .
   --- Action Statements
   op on_do_ : Id Stmt -> Stmt [prec 40 format (d r o d d)] .
   op on_do(_)_ : Id Exp Block -> Stmt [prec 40 format (d r o d d d d d)] .
+
+  --- Receive Statments
+  op receive_ : Block -> Stmt [prec 59 format (r on++i --in)] .
+  op case_:_ : Id Block -> Stmt [prec 55] .
 
   --- Stmts
   op goto_; : Id -> Stmt [format (o r o o)] .
