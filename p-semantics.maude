@@ -42,6 +42,15 @@ mod P-SEMANTICS is including P-SYNTAX .
   op (( machine: _ , _ )) : Id MachineAttributes -> MachineSchema [format(d d d ++ni d d --ni)] .
   op noid : -> [Id] .
 
+  sort MachineSchemas .
+  subsort MachineSchema < MachineSchemas .
+  op .MachineSchemas : -> MachineSchemas .
+  op _ ;; _ : MachineSchemas MachineSchemas -> MachineSchemas [assoc comm id: .MachineSchemas] .
+
+  var Schema : MachineSchema .
+  var Schema* : [MachineSchema] .
+  var Schemas : MachineSchemas .
+
   --- States
   ----------
   sort State .
@@ -66,19 +75,10 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   op .Actions : -> Actions .
   op _ _ : Actions Actions -> Actions [prec 62 assoc comm id: .Actions] .
-  var Actns : Actions .
+  var Actions : Actions .
 
   --- Arguments Id Code
   op (( action: _ , _ )) : Id Stmt -> Action .
-
-  sort MachineSchemas .
-  subsort MachineSchema < MachineSchemas .
-  op .MachineSchemas : -> MachineSchemas .
-  op _ ;; _ : MachineSchemas MachineSchemas -> MachineSchemas [assoc comm id: .MachineSchemas] .
-
-  var Schema : MachineSchema .
-  var Schema* : [MachineSchema] .
-  var Schemas : MachineSchemas .
 
   --------------------------------------------------------------------------------
 
@@ -134,8 +134,8 @@ mod P-SEMANTICS is including P-SYNTAX .
    = statementToState(Ss        , (state: SId, (entry: B), SAttrs))
    .
 
-  eq statementToState(on EId do B Ss, (state: SId, (actions:                  Actns), SAttrs))
-   = statementToState(Ss,             (state: SId, (actions: (action: EId, B) Actns), SAttrs))
+  eq statementToState(on EId do B Ss, (state: SId, (actions:                  Actions), SAttrs))
+   = statementToState(Ss,             (state: SId, (actions: (action: EId, B) Actions), SAttrs))
    .
 
   eq statementToState(.Stmt, State) = State .
@@ -167,7 +167,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .Messages : -> Messages .
   op _ , _ : Messages Messages -> Messages [assoc comm id: .Messages] .
   op { _ } : Exps -> Messages  .
-
 
  --- arguments: Reference | Code | StateCell
   op (( instance: _ , _ )) : Int InstanceAttributes -> MachineInstance [prec 63] .
@@ -217,11 +216,31 @@ mod P-SEMANTICS is including P-SYNTAX .
    = ( instance: M , (code: send eval(Exp, Rho),Exps ; Ss), (variables: Rho), IAttrs1)
   if notBool(Exp :: Nat)
    .
-
   rl ( instance: M , (code: send N,Exps ; Ss), IAttrs1)
      ( instance: N , (buffer: Messages), IAttrs2)
   => ( instance: M , (code: Ss), IAttrs1)
      ( instance: N , (buffer: ({Exps}, Messages)), IAttrs2)
+   .
+
+ --- action
+  rl (instances: ( instance: M , (code: .Stmt)
+                               , (buffer: { AId }, Messages)
+                               , (mid: MId)
+                               , (state: SId)
+                               , IAttrs1
+                 ) Machines )
+     (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Ss) Actions), SAttrs) States)
+                               , MAttrs)
+             ;; Schemas)
+  => (instances: ( instance: M , (code: Ss)
+                               , (buffer: Messages)
+                               , (mid: MId)
+                               , (state: SId)
+                               , IAttrs1
+                 ) Machines )
+     (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Ss) Actions), SAttrs) States)
+                               , MAttrs)
+             ;; Schemas)
    .
 
  --- arguments: MachineId, Identifier, Arguments
@@ -268,7 +287,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _|->_ : Id Exp -> VariableMap [prec 60 format (n++i r o --i) ] .
   op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
 
-  var X Y Id MId SId EId : Id .
+  var X Y Id MId SId EId AId : Id .
   var N M : Nat .
   var V V1 V2 : Int .
   var Id* : [Id] .
