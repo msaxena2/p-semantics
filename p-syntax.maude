@@ -63,7 +63,7 @@ mod P-SYNTAX is protecting PL-DOMAINS .
   op {} : -> Block [format (b b o)] .
   op {_} : Stmt -> Block [prec 39 format (d n++i n--i d)] .
   op _; : Exp -> Stmt [prec 40] .
-  op __ : Stmt Stmt -> Stmt [prec 60 gather (e E) id: .Stmt format (d ni d)] .
+  op __ : Stmt Stmt -> Stmt [prec 60 gather (e E) assoc id: .Stmt format (d ni d)] .
 
   --- Variable Statements
   op var_;   : Exp -> Stmt [prec 40 format (y o o o)] .

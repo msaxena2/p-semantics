@@ -1,7 +1,6 @@
 in "p-syntax.maude"
 
 mod P-SEMANTICS is including P-SYNTAX .
-
   --- State
   -----------------
 
@@ -157,11 +156,18 @@ mod P-SEMANTICS is including P-SYNTAX .
   sort InstanceAttributes .
   op .IAttrs : -> InstanceAttributes .
   op _ , _ : InstanceAttributes InstanceAttributes -> InstanceAttributes [prec 65 assoc comm id: .IAttrs] .
-  var IAttrs : InstanceAttributes .
+  var IAttrs IAttrs1  IAttrs2 : InstanceAttributes .
   op ((code:   _ )) : Stmt        -> InstanceAttributes .
   op ((variables:  _ )) : VariableMap -> InstanceAttributes .
   op ((state:  _ )) : Id -> InstanceAttributes .
   op ((mid:  _ )) : Id -> InstanceAttributes .
+
+  op ((buffer:  _ )) : Messages -> InstanceAttributes .
+  sort Messages .
+  op .Messages : -> Messages .
+  op _ , _ : Messages Messages -> Messages [assoc comm id: .Messages] .
+  op { _ } : Exps -> Messages  .
+
 
  --- arguments: Reference | Code | StateCell
   op (( instance: _ , _ )) : Int InstanceAttributes -> MachineInstance [prec 63] .
@@ -170,6 +176,14 @@ mod P-SEMANTICS is including P-SYNTAX .
   var Machines : MachineInstances .
 
   op (( instances: _ )) : MachineInstances -> Attribute [prec 64 format (ncu o++in o n--icu p)] .
+
+ --- Expressions
+ ---------------
+
+  op eval : Exps VariableMap -> [Int] .
+ --------------------------------------
+  eq eval(V,            Rho) = V .
+  eq eval(Id, (Id |-> V) Rho) = V .
 
  --- Statements
  --------------
@@ -185,25 +199,44 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- goto
-  rl (instance: M , (code: goto Id ; Ss), (variables: X |-> V2 Rho), IAttrs )
-  => (instance: M , enterState(Id), (variables: Rho), IAttrs)
+  rl (instance: M , (code: goto Id ; Ss), (variables: Rho), IAttrs)
+  => (instance: M , enterState(Id),       (variables: Rho), IAttrs)
    .
 
  --- new
   rl ( counter: N )
      (instances: ( instance: M , (code: X = new MId(Exps); Ss), IAttrs) Machines )
-  => ( counter: N +Int 2 )
+  => ( counter: N +Int 1 )
      (instances: ( instance: M , (code: X = N ;            Ss), IAttrs) Machines
-                    (new: MId, N +Int 1, Exps)
+                    (new: MId, N, Exps)
      )
+   .
+
+ --- send
+ ceq ( instance: M , (code: send Exp,Exps ; Ss), (variables: Rho), IAttrs1)
+   = ( instance: M , (code: send eval(Exp, Rho),Exps ; Ss), (variables: Rho), IAttrs1)
+  if notBool(Exp :: Nat)
+   .
+
+  rl ( instance: M , (code: send N,Exps ; Ss), IAttrs1)
+     ( instance: N , (buffer: Messages), IAttrs2)
+  => ( instance: M , (code: Ss), IAttrs1)
+     ( instance: N , (buffer: ({Exps}, Messages)), IAttrs2)
    .
 
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
   eq (instances: (new: MId, N, Exps) Machines )
      (machines:  (machine: MId, (start: StartId), (initState: Rho), MAttrs) ;; Schemas )
-   = (instances: (instance: N , (mid: MId), enterState(StartId), (state: noid), (variables: Rho)) Machines )
-     (machines:  (machine: MId, (start: StartId), (initState: Rho), MAttrs) ;; Schemas )
+   = (machines:  (machine: MId, (start: StartId), (initState: Rho), MAttrs) ;; Schemas )
+     (instances: (instance: N, (mid: MId)
+                             , enterState(StartId)
+                             , (state: noid)
+                             , (variables: Rho)
+                             , (buffer: .Messages)
+                 )
+                 Machines
+     )
    .
 
   op enterState : Id -> InstanceAttributes .
@@ -221,7 +254,7 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
   eq (instances: (instance: M , (mid: MId), enterState.code(SId), IAttrs) Machines)
      (machines:  (machine: MId, (states: (state: SId, SAttrs) States), MAttrs) ;; Schemas )
-   = (instances: (instance: M , (mid: MId),             IAttrs) Machines)
+   = (instances: (instance: M , (mid: MId), (code: .Stmt), IAttrs) Machines)
      (machines:  (machine: MId, (states: (state: SId, SAttrs) States), MAttrs) ;; Schemas )
      [owise]
    .
@@ -247,8 +280,10 @@ mod P-SEMANTICS is including P-SYNTAX .
   var Rho : VariableMap .
   var C : Attributes .
   var Exps : Exps .
+  var Exp : Exp .
   var State : State .
   var States : States .
+  var Messages : Messages .
 
 endm
 
