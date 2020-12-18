@@ -187,6 +187,16 @@ mod P-SEMANTICS is including P-SYNTAX .
   eq eval(Id, (Id |-> Exp) Rho) = Exp .
   eq eval(E1 < E2, Rho) = eval(E1, Rho) <Int eval(E2, Rho) .
   eq eval(E1 + E2, Rho) = eval(E1, Rho) +Int eval(E2, Rho) .
+  eq eval( (Id = Exp) , Rho) = ( Id = eval(Exp, Rho) ) .
+  eq eval( Id . Id1 , Id |-> ( Id1 = Exp ) Rho ) = Exp .
+  ceq eval( Id . E1 , Id |-> ( E1 = Exp ) Rho ) = eval( E1 , (E1 |-> Exp) )
+    if notBool (E1 :: Id )
+   .
+
+  op evalExps : Exps VariableMap -> Exps .
+ --------------------------------------
+  eq evalExps((Exp, Exps), Rho) = eval(Exp, Rho), evalExps(Exps, Rho) .
+  eq evalExps(.Exps, Rho) = .Exps .
 
  --- Statements
  --------------
@@ -237,10 +247,9 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- send
- ceq ( instance: M , (code: send Exp,Exps ; Ss), (variables: Rho), IAttrs1)
-   = ( instance: M , (code: send eval(Exp, Rho),Exps ; Ss), (variables: Rho), IAttrs1)
-  if notBool(Exp :: Nat)
-   .
+  ceq ( instance: M , (code: send Exp, Id, Exps ; Ss), (variables: Rho), IAttrs1)
+   = ( instance: M , (code: send eval(Exp, Rho), Id, evalExps(Exps, Rho) ; Ss), (variables: Rho), IAttrs1)
+  if notBool(Exp :: Nat) .
   rl ( instance: M , (code: send N,Exps ; Ss), IAttrs1)
      ( instance: N , (buffer: Messages), IAttrs2)
   => ( instance: M , (code: Ss), IAttrs1)
@@ -248,10 +257,16 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- action
+  op bindArgs(_ | _) : Exps Exps -> VariableMap .
+  eq bindArgs(Id : T , Exps1 | Exp, Exps2 ) = (Id |-> Exp) bindArgs(Exps1 | Exps2) .
+  eq bindArgs( .Exps | .Exps ) = .VariableMap .
+
+
   rl (instances: ( instance: M , (code: .Stmt)
-                               , (buffer: { AId }, Messages)
+                               , (buffer: { AId , Args }, Messages)
                                , (mid: MId)
                                , (state: SId)
+                               , (variables: Rho)
                                , IAttrs1
                  ) Machines )
      (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Exps, Ss) Actions), SAttrs) States)
@@ -261,6 +276,7 @@ mod P-SEMANTICS is including P-SYNTAX .
                                , (buffer: Messages)
                                , (mid: MId)
                                , (state: SId)
+                               , (variables: (bindArgs(Exps | Args)) Rho )
                                , IAttrs1
                  ) Machines )
      (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Exps, Ss) Actions), SAttrs) States)
@@ -318,7 +334,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _|->_ : Id Exp -> VariableMap [prec 60 format (n++i r o --i) ] .
   op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
 
-  var X Y Id MId SId EId AId : Id .
+  var X Y Id MId SId EId AId Id1 Id2 : Id .
   var N M : Nat .
   var I I1 I2 : Int .
   var Bool Bool1 Bool2 : Bool .
@@ -329,7 +345,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   var Ss S1s S2s : Stmt .
   var Rho : VariableMap .
   var C : Attributes .
-  var Exps : Exps .
+  var Args Exps Exps1 Exps2 : Exps .
   var Exp E1 E2 : Exp .
   var State : State .
   var States : States .
