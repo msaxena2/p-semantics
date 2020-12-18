@@ -3,13 +3,13 @@ reduce in P-SEND-RECIEVE-TEST : SenderPgm .
 result MachineStmt: machine Sender ; {
   var receiver : Receiver ;
   start state Init {
-    entry {
+    entry(.Exps){
       receiver = new Receiver(.Exps) ;
       goto SendRequests ;
     }
   }
   state SendRequests {
-    entry {
+    entry(.Exps){
       send receiver,ePing ;
     }
   }
@@ -18,7 +18,7 @@ result MachineStmt: machine Sender ; {
 reduce in P-SEND-RECIEVE-TEST : ReceiverPgm .
 result MachineStmt: machine Receiver ; {
   start state Init {
-    on ePing do {
+    on ePing do(.Exps){
       goto Done ;
     }
   }
@@ -30,20 +30,20 @@ result Attributes:
 (pgm:  machine Sender ; {
     var receiver : Receiver ;
     start state Init {
-      entry {
+      entry(.Exps){
         receiver = new Receiver(.Exps) ;
         goto SendRequests ;
       }
     }
     state SendRequests {
-      entry {
+      entry(.Exps){
         send receiver,ePing ;
       }
     }
   }
   machine Receiver ; {
     start state Init {
-      on ePing do {
+      on ePing do(.Exps){
         goto Done ;
       }
     }
@@ -59,21 +59,21 @@ result Attributes:
     ,(start: Init)
     ,(states:
       (state: Init
-        ,(entry: {
+        ,(actions:
+          .Actions
+        )
+,(entry: .Exps,{
           receiver = new Receiver(.Exps) ;
           goto SendRequests ;
-        }),(actions:
-          .Actions
-        )
-)
+        }))
       
       (state: SendRequests
-        ,(entry: {
-          send receiver,ePing ;
-        }),(actions:
+        ,(actions:
           .Actions
         )
-)
+,(entry: .Exps,{
+          send receiver,ePing ;
+        }))
       
     )
 
@@ -86,7 +86,7 @@ result Attributes:
     ,(states:
       (state: Init
         ,(actions:
-          (action: ePing,{
+          (action: ePing,.Exps,{
             goto Done ;
           })
         )
@@ -100,6 +100,6 @@ result Attributes:
   ) (counter: 2) 
 (    
 instances: (instance: 0,(code: .Stmt),(variables: 
-      receiver |-> 1    ),(state: SendRequests),(mid: Sender),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: .VariableMap),(state: Init),(mid: Receiver),(buffer: {ePing}))
+      receiver |-> 1    ),(state: SendRequests),(mid: Sender),(buffer: .Messages)) (instance: 1,(variables: .VariableMap),(state: Init),(mid: Receiver),(buffer: .Messages),enterState(Done))
   )
 Bye.
