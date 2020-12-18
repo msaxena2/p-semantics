@@ -58,7 +58,8 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .SAttrs : -> StateAttributes .
   op _ , _ : StateAttributes StateAttributes -> StateAttributes [prec 65 assoc comm id: .SAttrs] .
   var SAttrs : StateAttributes .
-  op (( entry: _ )) : Block -> StateAttributes .
+  --- Arguments Args Code
+  op (( entry: _, _ )) : Exps Block -> StateAttributes .
   op (( actions: _ )) : Actions -> StateAttributes [format(d d ++ni --ni n)] .
 
   op (( state: _, _ )) : Id StateAttributes -> State [format(d d d ++ni d d --ni) ] .
@@ -77,8 +78,8 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _ _ : Actions Actions -> Actions [prec 62 assoc comm id: .Actions] .
   var Actions : Actions .
 
-  --- Arguments Id Code
-  op (( action: _ , _ )) : Id Stmt -> Action .
+  --- Arguments Id Args Code
+  op (( action: _ , _ , _ )) : Id Exps Stmt -> Action .
 
   --------------------------------------------------------------------------------
 
@@ -130,12 +131,12 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   eq statementToState({ Ss }, State) = statementToState(Ss,     State) .
 
-  eq statementToState(entry B Ss, (state: SId,             SAttrs))
-   = statementToState(Ss        , (state: SId, (entry: B), SAttrs))
+  eq statementToState(entry ( Exps ) B Ss, (state: SId,                    SAttrs))
+   = statementToState(Ss                 , (state: SId, (entry: Exps , B), SAttrs))
    .
 
-  eq statementToState(on EId do B Ss, (state: SId, (actions:                  Actions), SAttrs))
-   = statementToState(Ss,             (state: SId, (actions: (action: EId, B) Actions), SAttrs))
+  eq statementToState(on EId do ( Exps ) B Ss, (state: SId, (actions:                        Actions), SAttrs))
+   = statementToState(Ss,                      (state: SId, (actions: (action: EId, Exps, B) Actions), SAttrs))
    .
 
   eq statementToState(.Stmt, State) = State .
@@ -229,7 +230,7 @@ mod P-SEMANTICS is including P-SYNTAX .
                                , (state: SId)
                                , IAttrs1
                  ) Machines )
-     (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Ss) Actions), SAttrs) States)
+     (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Exps, Ss) Actions), SAttrs) States)
                                , MAttrs)
              ;; Schemas)
   => (instances: ( instance: M , (code: Ss)
@@ -238,7 +239,7 @@ mod P-SEMANTICS is including P-SYNTAX .
                                , (state: SId)
                                , IAttrs1
                  ) Machines )
-     (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Ss) Actions), SAttrs) States)
+     (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Exps, Ss) Actions), SAttrs) States)
                                , MAttrs)
              ;; Schemas)
    .
@@ -267,9 +268,9 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   op enterState.code : Id -> InstanceAttributes .
   eq (instances: (instance: M , (mid: MId), enterState.code(SId), IAttrs) Machines)
-     (machines:  (machine: MId, (states: (state: SId, (entry: Ss), SAttrs) States), MAttrs) ;; Schemas )
+     (machines:  (machine: MId, (states: (state: SId, (entry: Exps , Ss), SAttrs) States), MAttrs) ;; Schemas )
    = (instances: (instance: M , (mid: MId), (code: Ss), IAttrs) Machines)
-     (machines:  (machine: MId, (states: (state: SId, (entry: Ss), SAttrs) States), MAttrs) ;; Schemas )
+     (machines:  (machine: MId, (states: (state: SId, (entry: Exps , Ss), SAttrs) States), MAttrs) ;; Schemas )
    .
   eq (instances: (instance: M , (mid: MId), enterState.code(SId), IAttrs) Machines)
      (machines:  (machine: MId, (states: (state: SId, SAttrs) States), MAttrs) ;; Schemas )
@@ -280,6 +281,12 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   --- Other infrastructure
   ------------------------
+
+  --- Macros
+
+  --- Add empty arguments to entry/actions without arguments
+  eq entry B = entry (.Exps) B .
+  eq on EId do B = on EId do (.Exps) B .
 
   --- Maps
   sort VariableMap .
