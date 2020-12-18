@@ -1,0 +1,119 @@
+==========================================
+reduce in P-SEND-RECIEVE-TEST : SenderPgm .
+result MachineStmt: machine Sender ; {
+  var receiver : Receiver ;
+  var sent : int ;
+  start state Init {
+    entry(.Exps){
+      receiver = new Receiver(.Exps);
+      goto SendRequests ;
+    }
+  }
+  state SendRequests {
+    entry(.Exps){
+      sent = sent + 1 ;
+      send receiver,ePing,message = sent ;
+    }
+  }
+}
+==========================================
+reduce in P-SEND-RECIEVE-TEST : ReceiverPgm .
+result MachineStmt: machine Receiver ; {
+  var received : int ;
+  start state Init {
+    on ePing do(payload){
+      received = payload . message ;
+      goto Done ;
+    }
+  }
+}
+==========================================
+reduce in P-SEND-RECIEVE-TEST : init(SenderPgm
+ReceiverPgm) .
+result Attributes: 
+(pgm:  machine Sender ; {
+    var receiver : Receiver ;
+    var sent : int ;
+    start state Init {
+      entry(.Exps){
+        receiver = new Receiver(.Exps);
+        goto SendRequests ;
+      }
+    }
+    state SendRequests {
+      entry(.Exps){
+        sent = sent + 1 ;
+        send receiver,ePing,message = sent ;
+      }
+    }
+  }
+  machine Receiver ; {
+    var received : int ;
+    start state Init {
+      on ePing do(payload){
+        received = payload . message ;
+        goto Done ;
+      }
+    }
+  }) 
+(machines:
+  .MachineSchemas)
+==========================================
+rewrite in P-SEND-RECIEVE-TEST : init(main SenderPgm
+ReceiverPgm) .
+result Attributes: 
+(machines:
+  (machine: Sender
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          .Actions
+        )
+,(entry: .Exps,{
+          receiver = new Receiver(.Exps);
+          goto SendRequests ;
+        }))
+      
+      (state: SendRequests
+        ,(actions:
+          .Actions
+        )
+,(entry: .Exps,{
+          sent = sent + 1 ;
+          send receiver,ePing,message = sent ;
+        }))
+      
+    )
+
+    ,(initState:
+      
+        receiver |-> 0       
+        sent |-> 0      
+    ))
+   ;; (machine: Receiver
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          (action: ePing,payload,{
+            received = payload . message ;
+            goto Done ;
+          })
+        )
+)
+      
+    )
+
+    ,(initState:
+      
+        received |-> 0      
+    ))
+  ) (counter: 2) 
+(    
+instances: (instance: 0,(code: .Stmt),(variables: 
+      receiver |-> 1     
+      sent |-> 1    ),(state: SendRequests),(mid: Sender),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: 
+      received |-> 0    ),(state: Init),(mid: Receiver),(buffer: {ePing,message = sent}))
+  )
+Bye.
