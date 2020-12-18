@@ -11,10 +11,8 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .Attribute : -> Configuration .
   op __ : Configuration Configuration -> Configuration [prec 65 assoc comm id: .Attribute] .
 
-  --- The init constructs an initial configuration from a program
-  --- with the ( pgm: cell storing the initial program.
-
-  op (( pgm: _ )) : Stmt -> Attribute [prec 64 format(n d ++i -- d)] .
+  --- "init" constructs a initial configuration from a program
+  --- with the (pgm: ) record containing the input program.
 
   op init : Stmt -> Configuration .
   -----------------------
@@ -23,13 +21,26 @@ mod P-SEMANTICS is including P-SYNTAX .
      ( machines:  .MachineSchemas )
    .
 
-  --- Machine Schemas
-  ----------------------
+  op (( pgm: _ )) : Stmt -> Attribute [prec 64 format(n d ++i -- d)] .
 
-  --- Machine statements are schema for initializing new machines.
-  --- For each machine statement, we load them into the ( machine: ) record.
+ --- Machine Schemas
+ ----------------------
+
+ --- Next, the various program declarations are loaded into the configuration
+
+ --- Machine statements are schema for initializing new machines.
+ --- For each machine statement, we load them into the ( machine: ) record
+ --- via the "statementToMachineSchema" construct.
+
+  op (( machines: _ )) : MachineSchemas -> Attribute [prec 64 format (n d ++ni d d)] .
+  rl ( pgm: ( machine Id ; B ) Ss )
+     (machines:  Schemas )
+  => ( pgm: Ss )
+     (machines:  statementToMachineSchema(machine Id ; B) ;; Schemas )
+   .
 
   sort MachineSchema .
+  op (( machine: _ , _ )) : Id MachineAttributes -> MachineSchema [format(d d d ++ni d d --ni)] .
   sort MachineAttributes .
   op .MAttrs : -> MachineAttributes .
   op _ , _ : MachineAttributes MachineAttributes -> MachineAttributes [prec 65 assoc comm id: .MAttrs format(d ni d d)] .
@@ -39,7 +50,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   op (( states:    _ )) : States      -> MachineAttributes [format(d d ++ni --ni n)] .
   op (( initState: _ )) : VariableMap -> MachineAttributes [format(d d ++ni --ni d)] .
 
-  op (( machine: _ , _ )) : Id MachineAttributes -> MachineSchema [format(d d d ++ni d d --ni)] .
   op noid : -> [Id] .
 
   sort MachineSchemas .
@@ -47,12 +57,48 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .MachineSchemas : -> MachineSchemas .
   op _ ;; _ : MachineSchemas MachineSchemas -> MachineSchemas [assoc comm id: .MachineSchemas] .
 
+ --- For now, we we do not process "sends" clauses, so we ignore them.
+  eq machine Id sends Exps ; B
+   = machine Id ; B
+   .
+
   var Schema : MachineSchema .
   var Schema* : [MachineSchema] .
   var Schemas : MachineSchemas .
 
-  --- States
-  ----------
+  op statementToMachineSchema : MachineStmt                 -> MachineSchema .
+  op statementToMachineSchema : Stmt        [MachineSchema] -> MachineSchema .
+  -------------------------------------------
+  eq statementToMachineSchema(machine Id ; B)
+   = statementToMachineSchema(B, (machine: Id, (start: noid), (states: .States), (initState: .VariableMap))) .
+  eq statementToMachineSchema({ Ss }, Schema*) = statementToMachineSchema(Ss, Schema*) .
+  eq statementToMachineSchema(var X : T ; Ss, (machine: Id, (initState: Rho          ), MAttrs*))
+   = statementToMachineSchema(Ss,             (machine: Id, (initState: (X |-> 0 Rho)), MAttrs*))
+   .
+  eq statementToMachineSchema((start state SId B) Ss, (machine: MId, (start: noid), MAttrs))
+   = statementToMachineSchema((      state SId B) Ss, (machine: MId, (start: SId),  MAttrs))
+   .
+  eq statementToMachineSchema((state SId B) Ss, (machine: MId, (states:                                                                   States), MAttrs*))
+   = statementToMachineSchema(              Ss, (machine: MId, (states: (statementToState(B, (state: SId, (actions: .Actions), .SAttrs))) States), MAttrs*))
+   .
+  eq statementToMachineSchema(.Stmt, Schema) = Schema .
+
+  op statementToState(_ , _) : Stmt State -> State .
+ ---------------------------------------------------
+  eq statementToState({ Ss }, State) = statementToState(Ss,     State) .
+  eq statementToState(entry ( Exps ) B Ss, (state: SId,                    SAttrs))
+   = statementToState(Ss                 , (state: SId, (entry: Exps , B), SAttrs))
+   .
+  eq statementToState(on EId do ( Exps ) B Ss, (state: SId, (actions:                        Actions), SAttrs))
+   = statementToState(Ss,                      (state: SId, (actions: (action: EId, Exps, B) Actions), SAttrs))
+   .
+  eq statementToState(.Stmt, State) = State .
+
+ --- States
+ ----------
+
+ --- (state: ) records store the entry, and actions corresponding to each state.
+
   sort State .
   sort StateAttributes .
   op .SAttrs : -> StateAttributes .
@@ -69,8 +115,9 @@ mod P-SEMANTICS is including P-SYNTAX .
   op .States : -> States .
   op _ _ : States States -> States [assoc comm id: .States format(d ni d)] .
 
-  --- Actions
-  -----------
+ --- Actions
+ -----------
+
   sort Action Actions .
   subsort Action < Actions .
 
@@ -78,18 +125,14 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _ _ : Actions Actions -> Actions [prec 62 assoc comm id: .Actions] .
   var Actions : Actions .
 
-  --- Arguments Id Args Code
-  op (( action: _ , _ , _ )) : Id Exps Stmt -> Action .
+                           --- Name, Args, Code
+  op (( action: _ , _ , _ )) : Id    Exps  Stmt -> Action .
 
-  --------------------------------------------------------------------------------
+ --- Main
+ --------
 
-  op (( machines: _ )) : MachineSchemas -> Attribute [prec 64 format (n d ++ni d d)] .
-
-  rl ( pgm: ( machine Id ; B ) Ss )
-     (machines:  Schemas )
-  => ( pgm: Ss )
-     (machines:  statementToMachineSchema(machine Id ; B) ;; Schemas )
-   .
+ --- The main cell is used to keep track of the Id of the main machine,
+ --- until all declarations have been loaded.
 
   op (( main: _ )) : Id -> Attribute [prec 64] .
   rl ( pgm: ( main machine Id ; B ) Ss )
@@ -97,12 +140,7 @@ mod P-SEMANTICS is including P-SYNTAX .
      ( main:  Id  )
    .
 
- --- For now, we we do not process "sends" clauses, so we ignore them.
-  eq machine Id sends Exps ; B
-   = machine Id ; B
-   .
-
- --- The schema for the main machine is used to initialize the machine soup.
+ --- Finally, the schema for the main machine is used to initialize the machine soup.
   op (( counter: _ )) : Nat -> Attribute [prec 64] .
   rl ( pgm: .Stmt )
      ( main:  MId  )
@@ -110,44 +148,12 @@ mod P-SEMANTICS is including P-SYNTAX .
      ( instances: (new: MId, 0, .Exps) )
    .
 
-  op statementToMachineSchema : MachineStmt                 -> MachineSchema .
-  op statementToMachineSchema : Stmt        [MachineSchema] -> MachineSchema .
-  -------------------------------------------
-  eq statementToMachineSchema(machine Id ; B)
-   = statementToMachineSchema(B, (machine: Id, (start: noid), (states: .States), (initState: .VariableMap))) .
-
-  eq statementToMachineSchema({ Ss }, Schema*) = statementToMachineSchema(Ss, Schema*) .
-  eq statementToMachineSchema(var X : T ; Ss, (machine: Id, (initState: Rho          ), MAttrs*))
-   = statementToMachineSchema(Ss,             (machine: Id, (initState: (X |-> 0 Rho)), MAttrs*))
-   .
-
-  eq statementToMachineSchema((start state SId B) Ss, (machine: MId, (start: noid), MAttrs))
-   = statementToMachineSchema((      state SId B) Ss, (machine: MId, (start: SId),  MAttrs))
-   .
-
-  eq statementToMachineSchema((state SId B) Ss, (machine: MId, (states:                                                                   States), MAttrs*))
-   = statementToMachineSchema(              Ss, (machine: MId, (states: (statementToState(B, (state: SId, (actions: .Actions), .SAttrs))) States), MAttrs*))
-   .
-
-  eq statementToState({ Ss }, State) = statementToState(Ss,     State) .
-
-  eq statementToState(entry ( Exps ) B Ss, (state: SId,                    SAttrs))
-   = statementToState(Ss                 , (state: SId, (entry: Exps , B), SAttrs))
-   .
-
-  eq statementToState(on EId do ( Exps ) B Ss, (state: SId, (actions:                        Actions), SAttrs))
-   = statementToState(Ss,                      (state: SId, (actions: (action: EId, Exps, B) Actions), SAttrs))
-   .
-
-  eq statementToState(.Stmt, State) = State .
-
-  eq statementToMachineSchema(.Stmt, Schema) = Schema .
-
-  --- Arguments: MachineId StateId Statements
-  op statementToState(_ , _) : Stmt State -> State .
-
  --- Machine Instances
  ---------------------
+
+ --- The (instance: ) records are used to store the *runtime* state of each machine instance.
+ --- Each instance is initialized from a machine schema either at the begining of execution
+ --- or via the "new" construct.
 
   sort MachineInstance MachineInstances .
   subsort MachineInstance < MachineInstances .
@@ -169,7 +175,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   op _ , _ : Messages Messages -> Messages [assoc comm id: .Messages] .
   op { _ } : Exps -> Messages  .
 
- --- arguments: Reference | Code | StateCell
   op (( instance: _ , _ )) : Int InstanceAttributes -> MachineInstance [prec 63] .
 
   var Machine  : MachineInstance .
@@ -229,7 +234,6 @@ mod P-SEMANTICS is including P-SYNTAX .
   if notBool(Exp :: Bool)
    .
 
-
  --- While
   eq (instance: M , (code: while (Exp) B                           Ss), IAttrs )
    = (instance: M , (code:    if (Exp) { B while (Exp) B } else {} Ss), IAttrs )
@@ -247,7 +251,7 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- send
-  ceq ( instance: M , (code: send Exp, Id, Exps ; Ss), (variables: Rho), IAttrs1)
+ ceq ( instance: M , (code: send Exp, Id, Exps ; Ss), (variables: Rho), IAttrs1)
    = ( instance: M , (code: send eval(Exp, Rho), Id, evalExps(Exps, Rho) ; Ss), (variables: Rho), IAttrs1)
   if notBool(Exp :: Nat) .
   rl ( instance: M , (code: send N,Exps ; Ss), IAttrs1)
@@ -256,7 +260,7 @@ mod P-SEMANTICS is including P-SYNTAX .
      ( instance: N , (buffer: ({Exps}, Messages)), IAttrs2)
    .
 
- --- action
+ --- action handlers
   rl (instances: ( instance: M , (code: .Stmt)
                                , (buffer: { AId , Args }, Messages)
                                , (mid: MId)
@@ -280,13 +284,9 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
   op bindArgs(_ | _ | _ ) : Exp Exps VariableMap -> VariableMap .
+  eq bindArgs( .Exps | Exps | Rho ) = Rho . --- Todo: Check if multiple arguments are allowed
   eq bindArgs(Id : T | Exps1 | (Id |-> Exps2) Rho ) = (Id |-> Exps1) Rho .
   eq bindArgs(Id : T | Exps1 |                Rho ) = (Id |-> Exps1) Rho [owise] .
-
- --- Todo: Check if multiple arguments are allowed
-  eq bindArgs( .Exps | Exps | Rho ) = Rho .
-
-
 
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
@@ -326,9 +326,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- Other infrastructure
   ------------------------
 
-  --- Macros
-
-  --- Add empty arguments to entry/actions without arguments
+  --- Macros: Add empty arguments to entry/actions without arguments
   eq entry B = entry (.Exps) B .
   eq on EId do B = on EId do (.Exps) B .
 
