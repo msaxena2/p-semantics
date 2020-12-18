@@ -3,17 +3,18 @@ reduce in DECLS-TEST : clientMachine .
 result MachineStmt: machine ClientMachine ; {
   var a : int ;
   var server : ServerMachine ;
+  var nextReqId : int ;
   var lastRecvSuccessfulReqId : int ;
-  state Init {
-    entry(payload : responseType){
+  var index : int ;
+  start state Init {
+    entry(.Exps){
       nextReqId = 1 ;
-      server = payload ;
+      server = new ServerMachine(.Exps) ;
       goto StartPumpingRequests ;
     }
   }
   state StartPumpingRequests {
-    entry {
-      var index : int ;
+    entry(.Exps){
       index = 0 ;
       while (index < 2){
         send server,eRequest,source = this,id = nextReqId ;
@@ -38,4 +39,79 @@ result MachineStmt: machine ServerMachine ; {
     }
   }
 }
+==========================================
+rewrite in DECLS-TEST : init(main clientMachine
+serverMachine) .
+result Attributes: 
+(machines:
+  (machine: ClientMachine
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          .Actions
+        )
+,(entry: .Exps,{
+          nextReqId = 1 ;
+          server = new ServerMachine(.Exps) ;
+          goto StartPumpingRequests ;
+        }))
+      
+      (state: StartPumpingRequests
+        ,(actions:
+          (action: eResponse,payload : responseType,{
+            assert(payload . id > lastRecvSuccessfulReqId);
+            lastRecvSuccessfulReqId = payload . id ;
+          })
+        )
+,(entry: .Exps,{
+          index = 0 ;
+          while (index < 2){
+            send server,eRequest,source = this,id = nextReqId ;
+            nextReqId = nextReqId + 1 ;
+            index = index + 1 ;
+          }
+        }))
+      
+    )
+
+    ,(initState:
+      
+        a |-> 0       
+        nextReqId |-> 0       
+        index |-> 0       
+        server |-> 0       
+        lastRecvSuccessfulReqId |-> 0      
+    ))
+   ;; (machine: ServerMachine
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          (action: eRequest,payload : requestType,{
+            var successful : bool ;
+            successful = $ ;
+            send payload . source,eResponse,id = payload . id,success = successful ;
+          })
+        )
+)
+      
+    )
+
+    ,(initState:
+      .VariableMap
+    ))
+  ) (counter: 2) 
+(    
+instances: (instance: 0,(code: while (index < 2){
+      send server,eRequest,source = this,id = nextReqId ;
+      nextReqId = nextReqId + 1 ;
+      index = index + 1 ;
+    }),(variables: 
+      a |-> 0     
+      nextReqId |-> 1     
+      index |-> 0     
+      server |-> 1     
+      lastRecvSuccessfulReqId |-> 0    ),(state: StartPumpingRequests),(mid: ClientMachine),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: .VariableMap),(state: Init),(mid: ServerMachine),(buffer: .Messages))
+  )
 Bye.
