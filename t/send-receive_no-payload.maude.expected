@@ -26,7 +26,7 @@ result MachineStmt: machine Receiver ; {
 ==========================================
 reduce in P-SEND-RECIEVE-TEST : init(SenderPgm
 ReceiverPgm) .
-result Attributes: 
+result Configuration: 
 (pgm:  machine Sender ; {
     var receiver : Receiver ;
     start state Init {
@@ -53,7 +53,7 @@ result Attributes:
 ==========================================
 rewrite in P-SEND-RECIEVE-TEST : init(main SenderPgm
 ReceiverPgm) .
-result Attributes: 
+result Configuration: 
 (machines:
   (machine: Sender
     ,(start: Init)

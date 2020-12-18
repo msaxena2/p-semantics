@@ -41,7 +41,7 @@ result MachineStmt: machine ServerMachine ; {
 ==========================================
 rewrite in DECLS-TEST : init(main clientMachine
 serverMachine) .
-result Attributes: 
+result Configuration: 
 (machines:
   (machine: ClientMachine
     ,(start: Init)

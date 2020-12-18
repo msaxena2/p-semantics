@@ -6,17 +6,17 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   --- The state consists of a AC soup of attributes.
 
-  sorts Attribute Attributes .
-  subsort Attribute < Attributes .
-  op .Attribute : -> Attributes .
-  op __ : Attributes Attributes -> Attributes [prec 65 assoc comm id: .Attribute] .
+  sorts Attribute Configuration .
+  subsort Attribute < Configuration .
+  op .Attribute : -> Configuration .
+  op __ : Configuration Configuration -> Configuration [prec 65 assoc comm id: .Attribute] .
 
   --- The init constructs an initial configuration from a program
   --- with the ( pgm: cell storing the initial program.
 
   op (( pgm: _ )) : Stmt -> Attribute [prec 64 format(n d ++i -- d)] .
 
-  op init : Stmt -> Attributes .
+  op init : Stmt -> Configuration .
   -----------------------
   eq init(Ss)
    = ( pgm: Ss )
@@ -257,14 +257,6 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- action
-  op bindArgs(_ | _ | _ ) : Exp Exps VariableMap -> VariableMap .
-  eq bindArgs(Id : T | Exps1 | (Id |-> Exps2) Rho ) = (Id |-> Exps1) Rho .
-  eq bindArgs(Id : T | Exps1 |                Rho ) = (Id |-> Exps1) Rho [owise] .
-
- --- Todo: Check if multiple arguments are allowed
-  eq bindArgs( .Exps | Exps | Rho ) = Rho .
-
-
   rl (instances: ( instance: M , (code: .Stmt)
                                , (buffer: { AId , Args }, Messages)
                                , (mid: MId)
@@ -286,6 +278,15 @@ mod P-SEMANTICS is including P-SYNTAX .
                                , MAttrs)
              ;; Schemas)
    .
+
+  op bindArgs(_ | _ | _ ) : Exp Exps VariableMap -> VariableMap .
+  eq bindArgs(Id : T | Exps1 | (Id |-> Exps2) Rho ) = (Id |-> Exps1) Rho .
+  eq bindArgs(Id : T | Exps1 |                Rho ) = (Id |-> Exps1) Rho [owise] .
+
+ --- Todo: Check if multiple arguments are allowed
+  eq bindArgs( .Exps | Exps | Rho ) = Rho .
+
+
 
  --- arguments: MachineId, Identifier, Arguments
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
@@ -347,7 +348,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   var B B1 B2 : Block .
   var Ss S1s S2s : Stmt .
   var Rho : VariableMap .
-  var C : Attributes .
+  var C : Configuration .
   var Args Exps Exps1 Exps2 : Exps .
   var Exp E1 E2 : Exp .
   var State : State .
