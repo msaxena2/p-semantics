@@ -292,7 +292,7 @@ mod P-SEMANTICS is including P-SYNTAX .
      (instances: (instance: N, (mid: MId)
                              , enterState(StartId)
                              , (state: noid)
-                             , (variables: Rho)
+                             , (variables: (this |-> N) Rho)
                              , (buffer: .Messages)
                  )
                  Machines
