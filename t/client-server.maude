@@ -27,13 +27,14 @@ mod DECLS-TEST is
    machine ClientMachine sends eRequest ;
    { var a : int ;
      var server : ServerMachine ;
+     var nextReqId : int ;
      var lastRecvSuccessfulReqId : int ;
 
-     state Init {
-       entry (payload : responseType)
-       {
+     start state Init {
+       entry
+      {
          nextReqId = 1 ;
-         server = payload ;
+         server = new ServerMachine( .Exps ) ;
          goto StartPumpingRequests ;
        }
     }
@@ -74,5 +75,7 @@ endm
 
 red clientMachine .
 red serverMachine .
+
+rew init(main clientMachine serverMachine) .
 
 quit .
