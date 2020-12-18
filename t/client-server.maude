@@ -77,4 +77,24 @@ red clientMachine .
 red serverMachine .
 
 rew init(main clientMachine serverMachine) .
+
+--- Checking monotonically increasing responses
+search init(main clientMachine serverMachine)
+   =>+ (instances:
+        ( instance: Nat:Nat
+        , (code: .Stmt )
+        , (variables:
+             lastRecvSuccessfulReqId |-> ( LastId:Int )
+             VariableMap:VariableMap )
+        , (state: StartPumpingRequests)
+        , (mid: ClientMachine)
+        , (buffer: { eResponse , (id = ResponseId:Int, Exps:Exps) }, Messages:Messages)
+        , IAttrs:InstanceAttributes
+        )
+        Machines:MachineInstances
+       ) C:Configuration
+  such that ResponseId:Int <Int (LastId:Int)
+.
+
+
 quit .

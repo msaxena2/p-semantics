@@ -113,4 +113,169 @@ instances: (instance: 0,(code: .Stmt),(variables:
       successful |-> true     
       payload |-> source = 0,id = 2    ),(state: Init),(mid: ServerMachine),(buffer: .Messages))
   )
+==========================================
+search in DECLS-TEST : init(main clientMachine
+serverMachine) =>+ C:Configuration 
+(  
+instances: Machines:MachineInstances (instance: Nat:Nat,IAttrs:InstanceAttributes,(code: .Stmt),(variables: VariableMap:VariableMap 
+    lastRecvSuccessfulReqId |-> LastId:Int  ),(state: StartPumpingRequests),(mid: ClientMachine),(buffer: Messages:Messages,{eResponse,id = ResponseId:Int,Exps:Exps}))
+) such that ResponseId:Int <Int LastId:Int = true .
+
+Solution 1 (state 24)
+C:Configuration --> 
+(machines:
+  (machine: ClientMachine
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          .Actions
+        )
+,(entry: .Exps,{
+          nextReqId = 1 ;
+          server = new ServerMachine(.Exps);
+          goto StartPumpingRequests ;
+        }))
+      
+      (state: StartPumpingRequests
+        ,(actions:
+          (action: eResponse,payload : responseType,{
+            lastRecvSuccessfulReqId = payload . id ;
+          })
+        )
+,(entry: .Exps,{
+          index = 0 ;
+          while (index < 2){
+            send server,eRequest,source = this,id = nextReqId ;
+            nextReqId = nextReqId + 1 ;
+            index = index + 1 ;
+          }
+        }))
+      
+    )
+
+    ,(initState:
+      
+        a |-> 0       
+        nextReqId |-> 0       
+        index |-> 0       
+        server |-> 0       
+        lastRecvSuccessfulReqId |-> 0      
+    ))
+   ;; (machine: ServerMachine
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          (action: eRequest,payload : requestType,{
+            successful = true ;
+            send payload . source,eResponse,id = payload . id,success = successful ;
+          })
+        )
+)
+      
+    )
+
+    ,(initState:
+      
+        successful |-> 0      
+    ))
+  ) (counter: 2)
+Machines:MachineInstances --> (instance: 1,(code: .Stmt),(variables: 
+  this |-> 1 
+  successful |-> true 
+  payload |-> source = 0,id = 2),(state: Init),(mid: ServerMachine),(buffer: .Messages))
+Nat:Nat --> 0
+IAttrs:InstanceAttributes --> .IAttrs
+VariableMap:VariableMap --> 
+  a |-> 0 
+  this |-> 0 
+  nextReqId |-> 3 
+  index |-> 2 
+  payload |-> id = 2,success = true 
+  server |-> 1
+LastId:Int --> 2
+Messages:Messages --> .Messages
+ResponseId:Int --> 1
+Exps:Exps --> success = true
+
+Solution 2 (state 25)
+C:Configuration --> 
+(machines:
+  (machine: ClientMachine
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          .Actions
+        )
+,(entry: .Exps,{
+          nextReqId = 1 ;
+          server = new ServerMachine(.Exps);
+          goto StartPumpingRequests ;
+        }))
+      
+      (state: StartPumpingRequests
+        ,(actions:
+          (action: eResponse,payload : responseType,{
+            lastRecvSuccessfulReqId = payload . id ;
+          })
+        )
+,(entry: .Exps,{
+          index = 0 ;
+          while (index < 2){
+            send server,eRequest,source = this,id = nextReqId ;
+            nextReqId = nextReqId + 1 ;
+            index = index + 1 ;
+          }
+        }))
+      
+    )
+
+    ,(initState:
+      
+        a |-> 0       
+        nextReqId |-> 0       
+        index |-> 0       
+        server |-> 0       
+        lastRecvSuccessfulReqId |-> 0      
+    ))
+   ;; (machine: ServerMachine
+    ,(start: Init)
+    ,(states:
+      (state: Init
+        ,(actions:
+          (action: eRequest,payload : requestType,{
+            successful = true ;
+            send payload . source,eResponse,id = payload . id,success = successful ;
+          })
+        )
+)
+      
+    )
+
+    ,(initState:
+      
+        successful |-> 0      
+    ))
+  ) (counter: 2)
+Machines:MachineInstances --> (instance: 1,(code: .Stmt),(variables: 
+  this |-> 1 
+  successful |-> true 
+  payload |-> source = 0,id = 1),(state: Init),(mid: ServerMachine),(buffer: .Messages))
+Nat:Nat --> 0
+IAttrs:InstanceAttributes --> .IAttrs
+VariableMap:VariableMap --> 
+  a |-> 0 
+  this |-> 0 
+  nextReqId |-> 3 
+  index |-> 2 
+  payload |-> id = 2,success = true 
+  server |-> 1
+LastId:Int --> 2
+Messages:Messages --> .Messages
+ResponseId:Int --> 1
+Exps:Exps --> success = true
+
+No more solutions.
 Bye.
