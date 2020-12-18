@@ -29,6 +29,7 @@ mod DECLS-TEST is
      var server : ServerMachine ;
      var nextReqId : int ;
      var lastRecvSuccessfulReqId : int ;
+     var index : int ;
 
      start state Init {
        entry
@@ -41,7 +42,6 @@ mod DECLS-TEST is
 
     state StartPumpingRequests {
       entry {
-        var index : int ;
         index = 0 ;
         while(index < 2)
         {
