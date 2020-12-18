@@ -257,7 +257,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   rl ( instance: M , (code: send N,Exps ; Ss), IAttrs1)
      ( instance: N , (buffer: Messages), IAttrs2)
   => ( instance: M , (code: Ss), IAttrs1)
-     ( instance: N , (buffer: ({Exps}, Messages)), IAttrs2)
+     ( instance: N , (buffer: (Messages, {Exps})), IAttrs2)
    .
 
  --- action handlers
