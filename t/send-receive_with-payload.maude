@@ -4,7 +4,7 @@ mod P-SEND-RECIEVE-TEST is including P-SEMANTICS .
 
   ops Sender Receiver Init SendRequests Done ePing receiver sent received message payload : -> Id .
 
-  op Receiver : -> Type .
+  ops Receiver requestType : -> Type .
   ops SenderPgm ReceiverPgm : -> Stmt .
 
   eq SenderPgm = (
@@ -31,7 +31,7 @@ mod P-SEND-RECIEVE-TEST is including P-SEMANTICS .
     machine Receiver ; {
       var received : int ;
       start state Init {
-        on ePing do (payload)  {
+        on ePing do (payload : requestType)  {
           received = payload . message ;
           goto Done ;
         }

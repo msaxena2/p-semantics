@@ -21,7 +21,7 @@ reduce in P-SEND-RECIEVE-TEST : ReceiverPgm .
 result MachineStmt: machine Receiver ; {
   var received : int ;
   start state Init {
-    on ePing do(payload){
+    on ePing do(payload : requestType){
       received = payload . message ;
       goto Done ;
     }
@@ -50,7 +50,7 @@ result Attributes:
   machine Receiver ; {
     var received : int ;
     start state Init {
-      on ePing do(payload){
+      on ePing do(payload : requestType){
         received = payload . message ;
         goto Done ;
       }
@@ -96,7 +96,7 @@ result Attributes:
     ,(states:
       (state: Init
         ,(actions:
-          (action: ePing,payload,{
+          (action: ePing,payload : requestType,{
             received = payload . message ;
             goto Done ;
           })
@@ -113,7 +113,8 @@ result Attributes:
 (    
 instances: (instance: 0,(code: .Stmt),(variables: 
       receiver |-> 1     
-      sent |-> 1    ),(state: SendRequests),(mid: Sender),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: 
-      received |-> 0    ),(state: Init),(mid: Receiver),(buffer: {ePing,message = sent}))
+      sent |-> 1    ),(state: SendRequests),(mid: Sender),(buffer: .Messages)) (instance: 1,(variables: 
+      received |-> 1     
+      payload |-> message = 1    ),(state: Init),(mid: Receiver),(buffer: .Messages),enterState(Done))
   )
 Bye.
