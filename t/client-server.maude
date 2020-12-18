@@ -52,7 +52,6 @@ mod DECLS-TEST is
       }
 
       on eResponse do (payload : responseType) {
-           assert(payload . id > lastRecvSuccessfulReqId) ;
            lastRecvSuccessfulReqId = payload . id ;
       }
     }
@@ -62,20 +61,20 @@ mod DECLS-TEST is
     machine ServerMachine
     sends eResponse ;
     {
+      var successful : bool ;
       start state Init {
-        on eRequest do (payload : requestType){
-          var successful : bool ;
-          successful = $ ;
-          send payload . source, eResponse, (id = payload . id, success = successful) ;
+        on eRequest do (payload : requestType) {
+          successful = true ;
+          send payload . source, eResponse, (id = payload . id , success = successful) ;
         }
       }
     } )  .
 
 endm
 
+
 red clientMachine .
 red serverMachine .
 
 rew init(main clientMachine serverMachine) .
-
 quit .

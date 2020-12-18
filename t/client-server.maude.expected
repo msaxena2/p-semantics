@@ -23,7 +23,6 @@ result MachineStmt: machine ClientMachine ; {
       }
     }
     on eResponse do(payload : responseType){
-      assert(payload . id > lastRecvSuccessfulReqId);
       lastRecvSuccessfulReqId = payload . id ;
     }
   }
@@ -31,10 +30,10 @@ result MachineStmt: machine ClientMachine ; {
 ==========================================
 reduce in DECLS-TEST : serverMachine .
 result MachineStmt: machine ServerMachine ; {
+  var successful : bool ;
   start state Init {
     on eRequest do(payload : requestType){
-      var successful : bool ;
-      successful = $ ;
+      successful = true ;
       send payload . source,eResponse,id = payload . id,success = successful ;
     }
   }
@@ -60,7 +59,6 @@ result Attributes:
       (state: StartPumpingRequests
         ,(actions:
           (action: eResponse,payload : responseType,{
-            assert(payload . id > lastRecvSuccessfulReqId);
             lastRecvSuccessfulReqId = payload . id ;
           })
         )
@@ -89,8 +87,7 @@ result Attributes:
       (state: Init
         ,(actions:
           (action: eRequest,payload : requestType,{
-            var successful : bool ;
-            successful = $ ;
+            successful = true ;
             send payload . source,eResponse,id = payload . id,success = successful ;
           })
         )
@@ -99,15 +96,21 @@ result Attributes:
     )
 
     ,(initState:
-      .VariableMap
+      
+        successful |-> 0      
     ))
   ) (counter: 2) 
 (    
 instances: (instance: 0,(code: .Stmt),(variables: 
       a |-> 0     
+      this |-> 0     
       nextReqId |-> 3     
       index |-> 2     
+      payload |-> id = 2,success = true     
       server |-> 1     
-      lastRecvSuccessfulReqId |-> 0    ),(state: StartPumpingRequests),(mid: ClientMachine),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: .VariableMap),(state: Init),(mid: ServerMachine),(buffer: {eRequest,source = this,id = nextReqId},{eRequest,source = this,id = nextReqId}))
+      lastRecvSuccessfulReqId |-> 2    ),(state: StartPumpingRequests),(mid: ClientMachine),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: 
+      this |-> 1     
+      successful |-> true     
+      payload |-> source = 0,id = 2    ),(state: Init),(mid: ServerMachine),(buffer: .Messages))
   )
 Bye.

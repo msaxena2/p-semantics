@@ -188,8 +188,8 @@ mod P-SEMANTICS is including P-SYNTAX .
   eq eval(E1 < E2, Rho) = eval(E1, Rho) <Int eval(E2, Rho) .
   eq eval(E1 + E2, Rho) = eval(E1, Rho) +Int eval(E2, Rho) .
   eq eval( (Id = Exp) , Rho) = ( Id = eval(Exp, Rho) ) .
-  eq eval( Id . Id1 , Id |-> ( Id1 = Exp ) Rho ) = Exp .
-  ceq eval( Id . E1 , Id |-> ( E1 = Exp ) Rho ) = eval( E1 , (E1 |-> Exp) )
+  eq eval( Id . Id1 , Id |-> (Exps1, (Id1 = Exp), Exps2) Rho ) = Exp .
+  ceq eval( Id . E1 , Id |-> (Exps1, (E1 = Exp), Exps2) Rho ) = eval( E1 , (E1 |-> Exp) )
     if notBool (E1 :: Id )
    .
 
@@ -257,9 +257,12 @@ mod P-SEMANTICS is including P-SYNTAX .
    .
 
  --- action
-  op bindArgs(_ | _) : Exps Exps -> VariableMap .
-  eq bindArgs(Id : T , Exps1 | Exp, Exps2 ) = (Id |-> Exp) bindArgs(Exps1 | Exps2) .
-  eq bindArgs( .Exps | .Exps ) = .VariableMap .
+  op bindArgs(_ | _ | _ ) : Exp Exps VariableMap -> VariableMap .
+  eq bindArgs(Id : T | Exps1 | (Id |-> Exps2) Rho ) = (Id |-> Exps1) Rho .
+  eq bindArgs(Id : T | Exps1 |                Rho ) = (Id |-> Exps1) Rho [owise] .
+
+ --- Todo: Check if multiple arguments are allowed
+  eq bindArgs( .Exps | Exps | Rho ) = Rho .
 
 
   rl (instances: ( instance: M , (code: .Stmt)
@@ -276,7 +279,7 @@ mod P-SEMANTICS is including P-SYNTAX .
                                , (buffer: Messages)
                                , (mid: MId)
                                , (state: SId)
-                               , (variables: (bindArgs(Exps | Args)) Rho )
+                               , (variables: bindArgs(Exps | Args | Rho ) )
                                , IAttrs1
                  ) Machines )
      (machines: (machine: MId, (states: (state: SId, (actions: (action: AId, Exps, Ss) Actions), SAttrs) States)
@@ -331,7 +334,7 @@ mod P-SEMANTICS is including P-SYNTAX .
   --- Maps
   sort VariableMap .
   op .VariableMap : -> VariableMap .
-  op _|->_ : Id Exp -> VariableMap [prec 60 format (n++i r o --i) ] .
+  op _|->_ : Id Exps -> VariableMap [prec 60 format (n++i r o --i) ] .
   op _ _ : VariableMap VariableMap -> VariableMap [prec 62 assoc comm id: .VariableMap] .
 
   var X Y Id MId SId EId AId Id1 Id2 : Id .

@@ -100,6 +100,8 @@ result Attributes:
   ) (counter: 2) 
 (    
 instances: (instance: 0,(code: .Stmt),(variables: 
-      receiver |-> 1    ),(state: SendRequests),(mid: Sender),(buffer: .Messages)) (instance: 1,(variables: .VariableMap),(state: Init),(mid: Receiver),(buffer: .Messages),enterState(Done))
+      this |-> 0     
+      receiver |-> 1    ),(state: SendRequests),(mid: Sender),(buffer: .Messages)) (instance: 1,(variables: 
+      this |-> 1    ),(state: Init),(mid: Receiver),(buffer: .Messages),enterState(Done))
   )
 Bye.
