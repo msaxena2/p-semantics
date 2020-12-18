@@ -9,7 +9,7 @@ result MachineStmt: machine ClientMachine ; {
   start state Init {
     entry(.Exps){
       nextReqId = 1 ;
-      server = new ServerMachine(.Exps) ;
+      server = new ServerMachine(.Exps);
       goto StartPumpingRequests ;
     }
   }
@@ -53,7 +53,7 @@ result Attributes:
         )
 ,(entry: .Exps,{
           nextReqId = 1 ;
-          server = new ServerMachine(.Exps) ;
+          server = new ServerMachine(.Exps);
           goto StartPumpingRequests ;
         }))
       
@@ -103,15 +103,11 @@ result Attributes:
     ))
   ) (counter: 2) 
 (    
-instances: (instance: 0,(code: while (index < 2){
-      send server,eRequest,source = this,id = nextReqId ;
-      nextReqId = nextReqId + 1 ;
-      index = index + 1 ;
-    }),(variables: 
+instances: (instance: 0,(code: .Stmt),(variables: 
       a |-> 0     
-      nextReqId |-> 1     
-      index |-> 0     
+      nextReqId |-> 3     
+      index |-> 2     
       server |-> 1     
-      lastRecvSuccessfulReqId |-> 0    ),(state: StartPumpingRequests),(mid: ClientMachine),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: .VariableMap),(state: Init),(mid: ServerMachine),(buffer: .Messages))
+      lastRecvSuccessfulReqId |-> 0    ),(state: StartPumpingRequests),(mid: ClientMachine),(buffer: .Messages)) (instance: 1,(code: .Stmt),(variables: .VariableMap),(state: Init),(mid: ServerMachine),(buffer: {eRequest,source = this,id = nextReqId},{eRequest,source = this,id = nextReqId}))
   )
 Bye.

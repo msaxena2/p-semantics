@@ -47,14 +47,15 @@ mod P-SYNTAX is protecting PL-DOMAINS .
   --- Assignment Exp
   op _=_ : Id Exp -> Exp [prec 39 format (d b o o)] .
 
+  --- Object Creation
+  op _ = new_(_) ; : Id Id Exps -> Stmt .
+
+
   --- This Expression
   op _to_ : Id Type -> Exp [prec 38] .
 
   --- Attributes Expression
   op _._ : Exp Exp -> Exp [prec 38] .
-
-  --- Object Creation
-  op new_(_) : Id Exps -> Exp [prec 38] .
 
   sorts Block Stmt .
   subsort Block < Stmt .

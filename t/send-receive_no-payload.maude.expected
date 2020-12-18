@@ -4,7 +4,7 @@ result MachineStmt: machine Sender ; {
   var receiver : Receiver ;
   start state Init {
     entry(.Exps){
-      receiver = new Receiver(.Exps) ;
+      receiver = new Receiver(.Exps);
       goto SendRequests ;
     }
   }
@@ -31,7 +31,7 @@ result Attributes:
     var receiver : Receiver ;
     start state Init {
       entry(.Exps){
-        receiver = new Receiver(.Exps) ;
+        receiver = new Receiver(.Exps);
         goto SendRequests ;
       }
     }
@@ -63,7 +63,7 @@ result Attributes:
           .Actions
         )
 ,(entry: .Exps,{
-          receiver = new Receiver(.Exps) ;
+          receiver = new Receiver(.Exps);
           goto SendRequests ;
         }))
       

@@ -180,28 +180,52 @@ mod P-SEMANTICS is including P-SYNTAX .
  --- Expressions
  ---------------
 
-  op eval : Exps VariableMap -> [Int] .
+  op eval : Exp VariableMap -> [Exp] .
  --------------------------------------
-  eq eval(V,            Rho) = V .
-  eq eval(Id, (Id |-> V) Rho) = V .
+  eq eval(I, Rho) = I .
+  eq eval(Bool, Rho) = Bool .
+  eq eval(Id, (Id |-> Exp) Rho) = Exp .
+  eq eval(E1 < E2, Rho) = eval(E1, Rho) <Int eval(E2, Rho) .
+  eq eval(E1 + E2, Rho) = eval(E1, Rho) +Int eval(E2, Rho) .
 
  --- Statements
  --------------
 
- --- Blocks
-  eq (instance: N , (code: { Ss }) , IAttrs)
-   = (instance: N , (code:   Ss  ) , IAttrs)
-   .
+ --- Control flow
 
- --- Assignment
-  eq (instance: M , (code: X = V ; Ss), (variables: X |-> V2 Rho), IAttrs )
-   = (instance: M , (code:         Ss), (variables: X |-> V  Rho), IAttrs )
-   .
+ --- Blocks
+  eq (instance: N , (code: {     } Ss) , IAttrs) = (instance: N , (code:     Ss) , IAttrs) .
+  eq (instance: N , (code: { S1s } Ss) , IAttrs) = (instance: N , (code: S1s Ss) , IAttrs) .
 
  --- goto
   rl (instance: M , (code: goto Id ; Ss), (variables: Rho), IAttrs)
   => (instance: M , enterState(Id),       (variables: Rho), IAttrs)
    .
+
+ --- Assignment
+  eq (instance: M , (code: X = E1 ; Ss), (variables: X |-> E2 Rho), IAttrs )
+   = (instance: M , (code:          Ss), (variables: X |-> eval(E1, X |-> E2 Rho) Rho), IAttrs )
+   .
+
+ --- If
+  eq (instance: M , (code:  if (true) B1 else B2 Ss), IAttrs )
+   = (instance: M , (code:  B1                   Ss), IAttrs )
+   .
+  eq (instance: M , (code:  if (false) B1 else B2 Ss), IAttrs )
+   = (instance: M , (code:  B2                    Ss), IAttrs )
+   .
+ ceq (instance: M , (code:  if (Exp)            B1 else B2 Ss), (variables: Rho), IAttrs )
+   = (instance: M , (code:  if (eval(Exp, Rho)) B1 else B2 Ss), (variables: Rho), IAttrs )
+  if notBool(Exp :: Bool)
+   .
+
+
+ --- While
+  eq (instance: M , (code: while (Exp) B                           Ss), IAttrs )
+   = (instance: M , (code:    if (Exp) { B while (Exp) B } else {} Ss), IAttrs )
+   .
+
+ --- inter machine interaction
 
  --- new
   rl ( counter: N )
@@ -296,17 +320,17 @@ mod P-SEMANTICS is including P-SYNTAX .
 
   var X Y Id MId SId EId AId : Id .
   var N M : Nat .
-  var V V1 V2 : Int .
-  var Id* : [Id] .
-  var StartId* : [Id] .
-  var StartId  :  Id .
+  var I I1 I2 : Int .
+  var Bool Bool1 Bool2 : Bool .
+  var StartId  : Id .
+  var Id* StartId* : [Id] .
   var T : Type .
-  var B : Block .
+  var B B1 B2 : Block .
   var Ss S1s S2s : Stmt .
   var Rho : VariableMap .
   var C : Attributes .
   var Exps : Exps .
-  var Exp : Exp .
+  var Exp E1 E2 : Exp .
   var State : State .
   var States : States .
   var Messages : Messages .
