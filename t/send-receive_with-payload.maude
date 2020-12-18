@@ -1,0 +1,50 @@
+in "../p-semantics.maude"
+
+mod P-SEND-RECIEVE-TEST is including P-SEMANTICS .
+
+  ops Sender Receiver Init SendRequests Done ePing receiver sent received message payload : -> Id .
+
+  op Receiver : -> Type .
+  ops SenderPgm ReceiverPgm : -> Stmt .
+
+  eq SenderPgm = (
+    machine Sender sends ePing ; {
+      var receiver : Receiver ;
+      var sent : int ;
+
+      start state Init {
+        entry {
+          receiver = new Receiver( .Exps );
+          goto SendRequests ;
+        }
+      }
+
+      state SendRequests {
+        entry {
+          sent = sent + 1 ;
+          send receiver, ePing, ( message = sent ) ;
+        }
+      }
+    } ) .
+
+   eq ReceiverPgm = (
+    machine Receiver ; {
+      var received : int ;
+      start state Init {
+        on ePing do (payload)  {
+          received = payload . message ;
+          goto Done ;
+        }
+      }
+    } ) .
+
+endm
+
+red SenderPgm .
+red ReceiverPgm .
+
+red init(SenderPgm ReceiverPgm) .
+rew init(main SenderPgm ReceiverPgm) .
+--- search init(main SenderPgm ReceiverPgm) =>* C:Attributes .
+
+quit .
