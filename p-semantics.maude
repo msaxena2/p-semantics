@@ -97,7 +97,7 @@ mod P-SEMANTICS is including P-SYNTAX .
  --- States
  ----------
 
- --- (state: ) records store the entry, and actions corresponding to each state.
+ --- The (state: ) records store the entry, and actions corresponding to each state.
 
   sort State .
   sort StateAttributes .
