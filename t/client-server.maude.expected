@@ -1,11 +1,11 @@
 ==========================================
 reduce in DECLS-TEST : clientMachine .
-result MachineStmt: machine ClientMachine sends eRequest ; {
+result MachineStmt: machine ClientMachine ; {
   var a : int ;
-  var server : ServerClientInterface ;
+  var server : ServerMachine ;
   var lastRecvSuccessfulReqId : int ;
   state Init {
-    entry(payload : ServerClientInterface){
+    entry(payload : responseType){
       nextReqId = 1 ;
       server = payload ;
       goto StartPumpingRequests ;
@@ -16,7 +16,7 @@ result MachineStmt: machine ClientMachine sends eRequest ; {
       var index : int ;
       index = 0 ;
       while (index < 2){
-        send server,eRequest,source = this to ClientInterface,id = nextReqId ;
+        send server,eRequest,source = this,id = nextReqId ;
         nextReqId = nextReqId + 1 ;
         index = index + 1 ;
       }
@@ -29,45 +29,12 @@ result MachineStmt: machine ClientMachine sends eRequest ; {
 }
 ==========================================
 reduce in DECLS-TEST : serverMachine .
-result MachineStmt: machine ServerMachine sends eResponse,eProcessReq ; {
-  var helper : HelperInterface ;
+result MachineStmt: machine ServerMachine ; {
   start state Init {
-    entry {
-      helper = new HelperInterface(this to ServerHelperInterface) ;
-      goto WaitForRequests ;
-    }
-  }
-  state WaitForRequests {
     on eRequest do(payload : requestType){
-      send helper,eProcessReq,payload . id ;
-      receive
-        {
-          case eReqSuccessful : {
-            send payload . source,eResponse,id = payload . id,success = true ;
-          }
-          case eReqFailed : {
-            send payload . source,eResponse,id = payload . id,success = false ;
-          }
-        }      
-
-    }
-  }
-}
-==========================================
-reduce in DECLS-TEST : helperMachine .
-result MachineStmt: machine HelperMachine sends eReqSuccessful,eReqFailed ; {
-  var server : ServerHelperInterface ;
-  start state Init {
-    entry(payload : ServerHelperInterface){
-      server = payload ;
-    }
-    on eProcessReq do {
-      if ($) {
-        send server,eReqSuccessful ;
-      }
-      else {
-        send server,eReqFailed ;
-      }
+      var successful : bool ;
+      successful = $ ;
+      send payload . source,eResponse,id = payload . id,success = successful ;
     }
   }
 }

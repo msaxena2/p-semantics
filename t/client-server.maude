@@ -1,9 +1,9 @@
 --- Client machine from P client-server example
 
-in "../p-syntax.maude" .
+in "../p-semantics.maude" .
 
 mod DECLS-TEST is
-  including P-SYNTAX .
+  including P-SEMANTICS .
 
   --- Define some extra Ids
   ops clientMachine serverMachine helperMachine : -> Stmt .
@@ -18,19 +18,19 @@ mod DECLS-TEST is
   ops Init WaitForRequests StartPumpingRequests : -> Id .
 
   --- Types
-  ops requestType responseType ServerClientInterface HelperInterface ClientInterface ServerHelperInterface : -> Type .
+  ops bool requestType responseType ClientMachine ServerMachine : -> Type .
 
   --- Variables
-  ops HelperInterface helper id success source nextReqId index payload server lastRecvSuccessfulReqId : -> Id .
+  ops HelperInterface successful helper id success source nextReqId index payload server lastRecvSuccessfulReqId : -> Id .
 
   eq clientMachine = (
    machine ClientMachine sends eRequest ;
    { var a : int ;
-     var server : ServerClientInterface ;
+     var server : ServerMachine ;
      var lastRecvSuccessfulReqId : int ;
 
      state Init {
-       entry (payload : ServerClientInterface)
+       entry (payload : responseType)
        {
          nextReqId = 1 ;
          server = payload ;
@@ -44,7 +44,7 @@ mod DECLS-TEST is
         index = 0 ;
         while(index < 2)
         {
-            send server, eRequest, (source = this to ClientInterface , id = nextReqId) ;
+            send server, eRequest, (source = this , id = nextReqId) ;
             nextReqId = nextReqId + 1 ;
             index = index + 1 ;
         }
@@ -58,58 +58,21 @@ mod DECLS-TEST is
   } ) .
 
   eq serverMachine = (
-    machine ServerMachine sends eResponse , eProcessReq ;
+    machine ServerMachine
+    sends eResponse ;
     {
-      var helper : HelperInterface ;
-
       start state Init {
-        entry {
-          helper = new HelperInterface (this to ServerHelperInterface) ;
-          goto WaitForRequests ;
-        }
-      }
-
-      state WaitForRequests {
         on eRequest do (payload : requestType){
-          send helper , eProcessReq , payload . id  ;
-          receive {
-            case eReqSuccessful : {
-              send payload . source  , eResponse , (id = payload . id , success = true) ;
-            }
-            case eReqFailed : {
-              send payload . source , eResponse , (id = payload . id , success = false) ;
-            }
-          }
+          var successful : bool ;
+          successful = $ ;
+          send payload . source, eResponse, (id = payload . id, success = successful) ;
         }
       }
-    } ) .
-
-  eq helperMachine = (
-    machine HelperMachine sends eReqSuccessful , eReqFailed ;
-    {
-      var server : ServerHelperInterface ;
-
-      start state Init {
-        entry(payload : ServerHelperInterface){
-          server = payload ;
-        }
-        on eProcessReq do {
-          if($)
-          {
-            send server , eReqSuccessful ;
-          }
-          else
-          {
-            send server , eReqFailed ;
-          }
-        }
-      }
-    } ) .
+    } )  .
 
 endm
 
 red clientMachine .
 red serverMachine .
-red helperMachine .
 
 quit .
