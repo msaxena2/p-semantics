@@ -30,10 +30,7 @@ semantics of P are loosely defined in [@DesaiPLDI17].
 In this paper, we formally define the executable semantics of
 a fragment of the P programming language in Maude.
 Our fragment is complete enough to run the examples from the
-P tutorial. We demonstrate the use of maude
-maude's search capabilities on programs written in our
-fragment and demonstrate an alternative methodology of
-developing correct asynchronous systems.
+P tutorial.
 
 Premliminaries
 ==============
@@ -206,8 +203,8 @@ consists of a collection of machines as a `Stmt`.
 
 ```
 
-Semantics
----------
+Semantics {#sec:semantics}
+=========
 
 In this section, we describe the semantics of
 constructs introduced in section [@sec:syntax].
@@ -219,7 +216,8 @@ with information needed to execute the program.
 In the dynamic phases, the actual execution of the program
 occurs using information gathered in the static phases.
 
-### Configuration
+Configuration
+-------------
 
 We organize our configuration as an Associate Commutative
 (AC) soup of attributes. Attributes hold information about
@@ -238,11 +236,12 @@ program execution. We briefly describe some imporant attributes:
     [prec 64 format(n d ++i -- d)] .
 ```
 
-### Static Phase
+Static Phase
+------------
 
 We now discuss the static phase.
 
-#### Initialization
+### Initialization
 
 The first step in execution of any P program using our semantics.
 The initialization step which sets up the configuration by adding
@@ -259,7 +258,8 @@ two attributes:
 ```
 
 
-### Machine Schemas {#sec:machine-schemas}
+Machine Schemas {#sec:machine-schemas}
+---------------
 
 P programs allow executing code to dynamically create instances of
 machines defined in the program via the `new` construct.
@@ -325,13 +325,14 @@ a machine definition and creates an appropriate sub-configuration
 for each machine. This subconfiguration comprises information regarding
 the machine such as its name, the set of state and the initial state.
 
-### Dynamic Phase
+Dynamic Phase
+-------------
 
 During the dynamic phase, we use the configuration
 that we setup during the static phase to execute the P program.
 We now describe some of the main execution rules in our semantics.
 
-#### Expressions {#sec:expressions}
+### Expressions {#sec:expressions}
 
 We now describe how expression constructs are evaluated.
 To evaluate expressions, we define a construct called `eval`
@@ -355,11 +356,11 @@ For example, `eq eval(Id, (Id |-> Exp) Rho) = Exp .` is the equation response
 for looking up the binding of an identifier in the state.
 
 
-#### Statements
+### Statements
 
 We now describe semantics for various statment constructs.
 
-##### Assignment
+**Assignment**
 
 ```
   eq ( instance: M
@@ -379,7 +380,7 @@ to reduce the rhs of the assignment construct. We then update the
 binding of the variable `X` in the `variables` attribute, which contains a mapping of identifiers
 to values, to the result of evaluating `E1`.
 
-##### If
+**If**
 
 ```
   eq ( instance: M
@@ -410,7 +411,7 @@ until we get a boolean result. Then, based on the result
 of the evaluation of the condition, one of the equations
 for the appropriate true/false branch is applied.
 
-##### New
+**New**
 
 The `new` statement corresponds to dynamic creation
 of an instance of a machine using the its machine schema.
@@ -466,12 +467,12 @@ the environment for the newly created instance,
 we bind the `this` variable to the value passed as an
 argument to the `new` attribute.
 
-#### Inter-Instance Communication
+### Inter-Instance Communication {#sec:send-semantics}
 
 We now discuss operations that facilitate inter instance
 communication. This occurs in P via message passing.
 
-##### Send {#sec:send-semantics}
+**Send**
 
 ```
  ceq ( instance: M
