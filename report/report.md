@@ -284,53 +284,39 @@ we define an operation called `statementToMachineSchema` as follows:
                                , ( start: noid)
                                , ( states: .States)
                                , ( initState: .VariableMap)
-                               )
-                             ) .
+                               ) ) .
   eq statementToMachineSchema({ Ss }, Schema*)
    = statementToMachineSchema(Ss, Schema*) .
   eq statementToMachineSchema( var X : T ; Ss
                              , (machine: Id
                                , (initState: Rho)
-                               , MAttrs*
-                               )
-                             )
+                               , MAttrs* ))
    = statementToMachineSchema(Ss
                              , (machine: Id
                                , (initState: (X |-> 0 Rho))
-                               , MAttrs*)
-                             ) .
+                               , MAttrs*)) .
 
   eq statementToMachineSchema( (start state SId B) Ss
                              , (machine: MId
                                 , (start: noid)
-                                , MAttrs
-                                )
-                             )
+                                , MAttrs))
    = statementToMachineSchema( (state SId B) Ss
                              , (machine: MId
                                , (start: SId)
-                               ,  MAttrs
-                               )
-                             ) .
+                               ,  MAttrs)) .
   eq statementToMachineSchema( (state SId B) Ss
                               , (machine: MId
                                 , (states:States)
-                                , MAttrs*
-                                )
-                              )
+                                , MAttrs* ))
   = statementToMachineSchema( Ss
-                            , (machine: MId
+                            , ( machine: MId
                               , (states:
-                                  (statementToState(B
-                                                    , (state: SId
+                                  ( statementToState( B
+                                                    , ( state: SId
                                                       , (actions: .Actions)
-                                                      , .SAttrs)
-                                                    )
-                                  ) States
-                                )
-                              , MAttrs*
-                              )
-                            ) .
+                                                      , .SAttrs)))
+                                 States)
+                              , MAttrs*)) .
 
 ```
 
@@ -376,16 +362,14 @@ We now describe semantics for various statment constructs.
 ##### Assignment
 
 ```
-  eq (instance: M
+  eq ( instance: M
      , (code: X = E1 ; Ss)
      , (variables: X |-> E2 Rho)
-     , IAttrs
-     )
-   = (instance: M
+     , IAttrs )
+   = ( instance: M
      , (code: Ss)
      , (variables: X |-> eval(E1, X |-> E2 Rho) Rho)
-     , IAttrs
-     ) .
+     , IAttrs) .
 ```
 
 On encountering an assingment statement of the form
@@ -398,32 +382,26 @@ to values, to the result of evaluating `E1`.
 ##### If
 
 ```
-  eq (instance: M
-      , (code:  if (true) B1 else B2 Ss)
-      , IAttrs
-     )
-   = (instance: M
-      , (code:  B1                   Ss)
-      , IAttrs
-     ) .
-  eq (instance: M
-     , (code:  if (false) B1 else B2 Ss)
-     , IAttrs
-     )
-   = (instance: M
+  eq ( instance: M
+      , (code: if (true) B1 else B2 Ss)
+      , IAttrs )
+   = ( instance: M
+      , (code:  B1 Ss)
+      , IAttrs ) .
+  eq ( instance: M
+     , (code: if (false) B1 else B2 Ss)
+     , IAttrs )
+   = ( instance: M
      , (code:  B2                    Ss)
-     , IAttrs
-     ) .
-  ceq (instance: M
-      , (code:  if (Exp) B1 else B2 Ss)
+     , IAttrs ) .
+  ceq ( instance: M
+      , (code: if (Exp) B1 else B2 Ss)
       , (variables: Rho)
-      , IAttrs
-      )
-    = (instance: M
+      , IAttrs )
+    = ( instance: M
       , (code:  if (eval(Exp, Rho)) B1 else B2 Ss)
       , (variables: Rho)
-      , IAttrs
-      )
+      , IAttrs )
     if notBool(Exp :: Bool) .
 ```
 
@@ -463,29 +441,22 @@ construct to create an instance using as following:
 
 ```
   op ((new: _, _, _)) : Id Nat Exps -> MachineInstance .
-  eq (instances: (new: MId, N, Exps) Machines )
-     (machines:
-      (machine: MId, (start: StartId)
-      , (initState: Rho)
-      , MAttrs
-      ) ;; Schemas
-     )
-  = (machines:
-     (machine: MId
-     , (start: StartId)
-     , (initState: Rho)
-     , MAttrs) ;; Schemas
-    )
-    (instances:
-     (instance: N
-       , (mid: MId)
-       , enterState(StartId)
-       , (state: noid)
-       , (variables: (this |-> N) Rho)
-       , (buffer: .Messages)
-     )
-     Machines
-    ) .
+  eq ( instances: (new: MId, N, Exps) Machines )
+     ( machines: ( machine: MId
+                 , (start: StartId)
+                 , (initState: Rho)
+                 , MAttrs) ;; Schemas )
+  = ( machines: ( machine: MId
+                , (start: StartId)
+                , (initState: Rho)
+                , MAttrs) ;; Schemas )
+    ( instances: ( instance: N
+                 , (mid: MId)
+                 , enterState(StartId)
+                 , (state: noid)
+                 , (variables: (this |-> N) Rho)
+                 , (buffer: .Messages) )
+     Machines ) .
 ```
 
 The attribute labeled `new` takes as input the name of the
@@ -506,30 +477,25 @@ communication. This occurs in P via message passing.
  ceq ( instance: M
      , (code: send Exp, Id, Exps ; Ss)
      , (variables: Rho)
-     , IAttrs1
-     )
+     , IAttrs1 )
    = ( instance: M
      , (code: send eval(Exp, Rho), Id, evalExps(Exps, Rho) ; Ss)
      , (variables: Rho)
-     , IAttrs1
-     )
+     , IAttrs1 )
   if notBool(Exp :: Nat) .
 
   rl ( instance: M
      , (code: send N,Exps ; Ss)
-     , IAttrs1
-     )
+     , IAttrs1 )
      ( instance: N
      , (buffer: Messages)
-     , IAttrs2)
+     , IAttrs2 )
   => ( instance: M
      , (code: Ss)
-     , IAttrs1
-     )
+     , IAttrs1 )
      ( instance: N
      , (buffer: (Messages, {Exps}))
-     , IAttrs2
-     ) .
+     , IAttrs2 ) .
 ```
 
 The `send` construct is used to send to another machine.
@@ -572,19 +538,11 @@ We now describe the rule for handling events.
                                , (variables: Rho)
                                , IAttrs1
                  ) Machines )
-     (machines:
-      (machine: MId
-      , (states:
-          (state: SId
-          , (actions:
-              (action: AId, Exps, Ss) Actions
-            )
-          , SAttrs
-          ) States
-        )
-      , MAttrs
-      ) ;; Schemas
-     )
+     (machines: ( machine: MId
+                , (states: ( state: SId
+                           , (actions: (action: AId, Exps, Ss) Actions)
+                           , SAttrs) States )
+                , MAttrs) ;; Schemas )
   => (instances: ( instance: M , (code: Ss)
                                , (buffer: Messages)
                                , (mid: MId)
@@ -592,16 +550,11 @@ We now describe the rule for handling events.
                                , (variables: bindArgs(Exps | Args | Rho ) )
                                , IAttrs1
                  ) Machines )
-     (machines:
-      (machine: MId
-      , (states:
-          (state: SId
-          , (actions: (action: AId, Exps, Ss) Actions)
-          , SAttrs) States
-        )
-      , MAttrs
-      ) ;; Schemas
-     )
+     (machines: ( machine: MId
+                , ( states: ( state: SId
+                            , (actions: (action: AId, Exps, Ss) Actions)
+                            , SAttrs ) States )
+                , MAttrs ) ;; Schemas)
 
 ```
 
@@ -654,7 +607,7 @@ programming language -  a Domain Specific Language for
 asynchronous program that uses state machine to represent
 distributed system components. We formalized the semantics of
 a subset of the P language in Maude, and presented
-both the syntax (section [@sec:p-syntax]) and the
-execution semantics (section [@sec:p-semantics]). Finally,
+both the syntax (section [@sec:syntax]) and the
+execution semantics (section [@sec:semantics]). Finally,
 we presented several avenues for future research.
 
