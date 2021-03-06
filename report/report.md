@@ -13,24 +13,32 @@ secPrefix:
   - "Sections"
 ...
 
-Problem Statement
-=================
+Introduction
+============
 
-P is a language for developing asynchronous systems.
-Components of a distributed system in P are modeled
-as state machines that interact via message passing.
-Systems written in P can use the P model checker to
-establish correctness. Furthermore, P generates
+P is a language for developing asynchronous distributed systems.
+Components of a system in P are modeled
+as state machines that can execute in parallel and
+interact via passing message. Once a system is captured
+in P, it can be analyzed using tools in the P ecosystem such
+as the P model checker.  Furthermore, P generates
 performant C# code that can be used in production
 environments. P has been used successfully used components
 of complex large scale systems at AWS and Microsoft.
 
 Even though P finds increasing adoption, the executable
-semantics of P are loosely defined in [@DesaiPLDI17].
+its semantics have only been loosely defined [@DesaiPLDI17].
+The lack of a formal semantics means that the P compiler and other
+tools use an ad-hoc model of the language in their implementation.
 In this paper, we formally define the executable semantics of
-a fragment of the P programming language in Maude.
-Our fragment is complete enough to run the examples from the
-P tutorial.
+a fragment of the P programming language in Maude. Our model,
+when used with the maude `rewrite` command, serves as an
+interpreter for the P language, bridging the gap between the
+language's specification [@DesaiPLDI17] and the its tools.
+Although not yet complete, our model is complete enough
+to run examples from the P tutorial. In this paper,
+we report our progress in capturing the semantics of P
+in maude [^1] and describe future work.
 
 Premliminaries
 ==============
@@ -45,13 +53,13 @@ a collection of machines that communicate via passing messages.
 Each machine has a collection of states, variables and actions.
 On receving an event, a machine may transition to another state
 by performing the action associated with said transition.
-P programs can be analyzed using a model checker, and
-compiled into executable code that can be used in a
+P programs can be analyzed using the P model checker, and
+compiled into executable code via the P compiler that can be used in a
 production environment. Favourable performance has allowed
 P to be used in large scale production environments at Microsoft
 and Amazon Web Services (AWS) [@DesaiPLDI17].
 
-We futher explain the features of P using an example program.
+We now explain the features of P using an example program.
 Consider the following `server` machine written in P.
 
 ```
@@ -308,21 +316,23 @@ we define an operation called `statementToMachineSchema` as follows:
                               , (machine: MId
                                 , (states:States)
                                 , MAttrs* ))
-  = statementToMachineSchema( Ss
-                            , ( machine: MId
-                              , (states:
-                                  ( statementToState( B
-                                                    , ( state: SId
-                                                      , (actions: .Actions)
-                                                      , .SAttrs)))
-                                 States)
-                              , MAttrs*)) .
+  = statementToMachineSchema(
+      Ss
+      , ( machine: MId
+        , (states:
+            ( statementToState( B
+                              , ( state: SId
+                                , (actions: .Actions)
+                                , .SAttrs)))
+           States)
+       , MAttrs*)
+    ) .
 
 ```
 
 The `statementToMachineSchema` operator recursively traverses
 a machine definition and creates an appropriate sub-configuration
-for each machine. This subconfiguration comprises information regarding
+for each machine. This sub-configuration comprises information regarding
 the machine such as its name, the set of state and the initial state.
 
 Dynamic Phase
@@ -358,7 +368,7 @@ for looking up the binding of an identifier in the state.
 
 ### Statements
 
-We now describe semantics for various statment constructs.
+We now describe semantics for various statement constructs.
 
 **Assignment**
 
@@ -376,7 +386,7 @@ We now describe semantics for various statment constructs.
 On encountering an assingment statement of the form
 ` X = E1 ` in the code attribute of an instance `M` of some machine,
 we first use the `eval` construct described in section [@sec:expressions]
-to reduce the rhs of the assignment construct. We then update the
+to reduce the right hand side (rhs) of the assignment construct. We then update the
 binding of the variable `X` in the `variables` attribute, which contains a mapping of identifiers
 to values, to the result of evaluating `E1`.
 
@@ -510,7 +520,9 @@ For instance, consider the following send statement
 from the `ServerMachine` in [@sec:p-language]
 
 ```
-send payload . source, eResponse, (id = payload . id , success = successful) ;
+send  payload . source
+    , eResponse
+    , (id = payload . id , success = successful) ;
 ```
 
 The statement above sends to the source of the payload,
@@ -520,7 +532,7 @@ fields `id` and `success` of the message are bound to
 
 The rule for send uses the `eval` construct described in
 [@sec:expressions] to evaluate the expressions fully, and
-then adds the evaluated expression to the buffer fo the target
+then adds the evaluated expression to the buffer of the target
 machine.
 
 ### Event Handlers
@@ -541,20 +553,29 @@ We now describe the rule for handling events.
                  ) Machines )
      (machines: ( machine: MId
                 , (states: ( state: SId
-                           , (actions: (action: AId, Exps, Ss) Actions)
+                           , (actions: ( action: AId
+                                        , Exps
+                                        , Ss
+                                        ) Actions)
                            , SAttrs) States )
                 , MAttrs) ;; Schemas )
   => (instances: ( instance: M , (code: Ss)
                                , (buffer: Messages)
                                , (mid: MId)
                                , (state: SId)
-                               , (variables: bindArgs(Exps | Args | Rho ) )
+                               , (variables: bindArgs( Exps
+                                                     | Args
+                                                     | Rho )
+                                 )
                                , IAttrs1
                  ) Machines )
      (machines: ( machine: MId
                 , ( states: ( state: SId
-                            , (actions: (action: AId, Exps, Ss) Actions)
-                            , SAttrs ) States )
+                            , (actions: ( action: AId
+                                        , Exps
+                                        , Ss) Actions )
+                            , SAttrs )
+                    States )
                 , MAttrs ) ;; Schemas)
 
 ```
@@ -570,7 +591,7 @@ The rule performs the following steps:
    construct.
 
 We now describe the `bindArgs` construct, which is responsible
-for updating the environment with appropirate values passed
+for updating the environment with appropriate values passed
 via `send`.
 
 ```
@@ -612,3 +633,4 @@ both the syntax (section [@sec:syntax]) and the
 execution semantics (section [@sec:semantics]). Finally,
 we presented several avenues for future research.
 
+[^1]: Our semantics are available at https://github.com/msaxena2/p-semantics
